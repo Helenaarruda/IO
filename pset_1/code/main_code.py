@@ -403,8 +403,8 @@ df3 = pd.DataFrame({
 # SAVE
 # ============================================================
 
-df1.to_csv("scenario_1.csv", index=False)
-df2.to_csv("scenario_2.csv", index=False)
-df3.to_csv("scenario_3.csv", index=False)
+df1.to_csv("pset_1/temp/scenario_1.csv", index=False)
+df2.to_csv("pset_1/temp/scenario_2.csv", index=False)
+df3.to_csv("pset_1/temp/scenario_3.csv", index=False)
 
 print("Datasets generated successfully!")
