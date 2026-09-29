@@ -1,7 +1,7 @@
 ---
 title: "Problem Set 1"
 subtitle: "Industrial Organization"
-author: "Your Name"
+author: "Helena, Igor, and Qixuan"
 date: last-modified
 format:
   pdf:
@@ -9,7 +9,7 @@ format:
     fontsize: 11pt
     geometry:
       - margin=1in
-    number-sections: true
+    number-sections: false
     toc: false
 execute:
   enabled: false
@@ -26,46 +26,71 @@ Render this document from the repository root with:
 The resulting PDF is written next to this file.
 -->
 
-\newpage
+# I. Conduct analysis in the product space: a monopsonist firm?
 
-## Question 1
+## Part 1: theory and DGP
 
-### Part (i)
+### i. Solving for the equilibria
 
-Write your answer here. State assumptions clearly and show the main steps of
-your derivation.
-
-For example, an inline expression is $y = \beta x + \varepsilon$, and a
-displayed equation is
-
+In scenario 1, the firm solves
 $$
-\max_{q \geq 0} \; \pi(q) = p(q)q - C(q).
+  \max_{L_t} p_t e^{\nu_t} L_t^\beta - w_t L_t,  
 $$
+with FOC
+$$
+  w_t = \beta\, p_t e^{\nu_t} L_t^{\beta - 1},
+$$
+which is the labor demand equation in this case. In scenario 2, where the firm knows it will affect wages, we also have to incorporate the $\partial w_t/\partial L_t$ term from the labor supply. The FOC in scenario 2 is
+$$
+  \beta\, p_t e^{\nu_t} L_t^{\beta - 1} = w_t + L_t\,\frac{\partial w_t}{\partial L_t}.
+$$
+We can already see that wages will be lower in this case. Because labor supply is upward-sloping in wages, the equation above will yield the wages of scenario 1 minus a positive term. Taking logs in the labor supply equation, we get
+$$
+\log (L_t) = \alpha + \gamma \log (w_t) + \mu \log (u_t) + \rho \log (u_t) \log (w_t) + \eta_t.
+$$
+This makes it easy to calculate the labor supply elasticity
+$$
+\frac{\partial\log(L_t)}{\partial\log(w_t)} = \frac{w_t}{L_t}\,\frac{\partial L_t}{\partial w_t} = \gamma + \rho \log(u_t).
+$$
+By the inverse function theorem,
+$$
+\frac{\partial\log(w_t)}{\partial\log(L_t)} = \frac{L_t}{w_t}\,\frac{\partial w_t}{\partial L_t} = \frac{1}{\gamma + \rho \log(u_t)}.
+$$
+Dividing both sides of the scenario 2 labor demand equation by $w_t$,
+$$
+  \frac{\beta\, p_t e^{\nu_t} L_t^{\beta - 1}}{w_t} = 1 + \frac{L_t}{w_t}\,\frac{\partial w_t}{\partial L_t} = 1 + \frac{1}{\gamma + \rho \log(u_t)}.
+$$
+Solving for $w_t$,
+$$
+w_t = \beta\,p_t e^{\nu_t} L_t^{\beta - 1} \tag{Scenario 1 Labor Demand}
+$$
+$$
+w_t = \left(1 + \frac{1}{\gamma + \rho \log(u_t)}\right)^{-1} \beta\, p_t e^{\nu_t} L_t^{\beta - 1} \tag{Scenario 2 Labor Demand}.
+$$
+We can combine both by defining the markdown
+$$
+M = \begin{cases}
+1, &\text{in Scenario 1}\\
+\left(1 + \dfrac{1}{\gamma + \rho \log(u_t)}\right)^{-1}, &\text{in Scenario 2}
+\end{cases}.
+$$
+Then, in both cases, labor market equilibrium $(L_t, w_t)$ is determined by both labor supply and demand, so by the system
+$$
+\begin{cases}
+w_t = \beta\,M\, p_t e^{\nu_t} L_t^{\beta - 1}\\[0.5em]
+L_t = \exp\Big(\alpha + \gamma \log (w_t) + \mu \log(u_t) + \rho \log(u_t)\log(w_t) + \eta_t\Big)
+\end{cases}.
+$$
+If we knew all the parameters $(\beta, \alpha, \gamma, \mu, \rho)$, and we observed $(p_t, u_t, \nu_t, \eta_t)$, we would also know $M$. Hence, the only unknowns in the two equations would be $(L_t, w_t)$. We could solve for them by hand by substituting $w_t$ from the labor demand into the labor supply equation, from which we could find a root $L_t^*$. Then, we just plug it into either equation to compute $w_t^*$.
 
-### Part (ii)
+#### 1. Wages in Scenario 1 vs. in Scenario 2
 
-Write your answer here.
+Because the markdown term $M$ lies in $(0,1)$, the labor demand curve is shifted down in Scenario 2. Therefore, equilibrium wages will be lower in Scenario 2.
 
-If you use code to produce a result, describe the method and interpret the
-output in the text. Keep supporting code in `pset_1/code/`.
+#### 2. Markdown
 
-```{python}
-#| echo: true
-# Example: code used for a calculation or figure.
-# import pandas as pd
-# data = pd.read_csv("temp/scenario_1.csv")
-```
-
-## Question 2
-
-### Part (i)
-
-Write your answer here.
-
-### Part (ii)
-
-Write your answer here.
-
-## Appendix (optional)
-
-Place supplementary derivations, tables, or figures here.
+By the markdown formula
+$$
+M = \left(1 + \dfrac{1}{\gamma + \rho \log(u_t)}\right)^{-1},
+$$
+$M$ is increasing in $\gamma$, in $\rho$, and does not depend on $\mu$. It is also increasing in $\u_t$. Because $M$ is a multiplier, $M$ becoming larger means that wages are being marked down less, hence higher. Here, we rely on $u_t > 1$ to avoid the logs being negative, so unemployment $u_t$ would be defined in absolute terms and not as a fraction.
