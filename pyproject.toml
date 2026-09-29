@@ -1,0 +1,14 @@
+[project]
+name = "io-psets"
+version = "0.1.0"
+description = "Industrial Organization problem sets"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "jax",
+    "pandas",
+    "scipy",
+]
+
+[tool.uv]
+package = false
