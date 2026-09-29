@@ -1,0 +1,71 @@
+---
+title: "Problem Set 1"
+subtitle: "Industrial Organization"
+author: "Your Name"
+date: last-modified
+format:
+  pdf:
+    documentclass: article
+    fontsize: 11pt
+    geometry:
+      - margin=1in
+    number-sections: true
+    toc: false
+execute:
+  enabled: false
+  echo: false
+  warning: false
+  error: false
+---
+
+<!--
+Render this document from the repository root with:
+
+    quarto render pset_1/pset_1_submission.qmd --to pdf
+
+The resulting PDF is written next to this file.
+-->
+
+\newpage
+
+## Question 1
+
+### Part (i)
+
+Write your answer here. State assumptions clearly and show the main steps of
+your derivation.
+
+For example, an inline expression is $y = \beta x + \varepsilon$, and a
+displayed equation is
+
+$$
+\max_{q \geq 0} \; \pi(q) = p(q)q - C(q).
+$$
+
+### Part (ii)
+
+Write your answer here.
+
+If you use code to produce a result, describe the method and interpret the
+output in the text. Keep supporting code in `pset_1/code/`.
+
+```{python}
+#| echo: true
+# Example: code used for a calculation or figure.
+# import pandas as pd
+# data = pd.read_csv("temp/scenario_1.csv")
+```
+
+## Question 2
+
+### Part (i)
+
+Write your answer here.
+
+### Part (ii)
+
+Write your answer here.
+
+## Appendix (optional)
+
+Place supplementary derivations, tables, or figures here.
