@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import pandas as pd
 from scipy.optimize import root
+from scipy.optimize import minimize
 
 # ==============================================================================
 # Functions from Pietro's code
@@ -374,28 +375,28 @@ t = jnp.arange(1, T + 1)
 
 df1 = pd.DataFrame({
     "t": t,
-    "wt": w1,
-    "Lt": L1,
-    "ut": u,
-    "pt": p
+    "w": w1,
+    "L": L1,
+    "u": u,
+    "p": p
 })
 
 
 df2 = pd.DataFrame({
     "t": t,
-    "wt": w2,
-    "Lt": L2,
-    "ut": u,
-    "pt": p
+    "w": w2,
+    "L": L2,
+    "u": u,
+    "p": p
 })
 
 
 df3 = pd.DataFrame({
     "t": t,
-    "wt": w3,
-    "Lt": L3,
-    "ut": u,
-    "pt": p
+    "w": w3,
+    "L": L3,
+    "u": u,
+    "p": p
 })
 
 
@@ -408,3 +409,327 @@ df2.to_csv("scenario_2.csv", index=False)
 df3.to_csv("scenario_3.csv", index=False)
 
 print("Datasets generated successfully!")
+
+
+# ============================================================
+# Part 2: Estimation
+# ============================================================
+
+
+def single_t_moments(theta, data):
+    """
+    Calculates the moment conditions for one market t.
+    """
+
+    # Unpack parameters directly from theta
+    alpha = theta[0]
+    gamma = theta[1]
+    mu = theta[2]
+    rho = theta[3]
+    beta = theta[4]
+
+    # Data for market t
+    w, L, u, p = data
+
+    # Logs
+    log_w = jnp.log(w)
+    log_L = jnp.log(L)
+    log_u = jnp.log(u)
+    log_p = jnp.log(p)
+
+    # Labor supply residual
+    eta = (
+        log_L
+        - alpha
+        - gamma * log_w
+        - mu * log_u
+        - rho * log_u * log_w
+    )
+
+    # Firm FOC residual under monopsony
+    nu = (
+        log_w
+        + jnp.log(1 + 1 / (gamma + rho * log_u))
+        - log_p
+        - jnp.log(beta)
+        - (beta - 1) * log_L
+    )
+
+    # Instruments
+    Z = jnp.array([
+        1.0,
+        log_u,
+        log_p
+    ])
+
+    # Six moments for market t
+    moments_eta = Z * eta
+    moments_nu = Z * nu
+
+    return moments_eta, moments_nu
+
+
+    # -------------------------------------------------
+    # 5. Apply vmap
+    # -------------------------------------------------
+
+
+def all_t_moments(theta, data):
+    """
+    Calculates the moment conditions for all markets.
+    """
+    all_moments_eta, all_moments_nu = jax.vmap(
+        single_t_moments,
+        in_axes=(None, 0)
+    )(theta, data)
+
+    return all_moments_eta, all_moments_nu
+
+    # -------------------------------------------------
+    # 6. Compute Sample Moments
+    # -------------------------------------------------
+
+def sample_moments(theta, data):
+
+    moments_eta, moments_nu = all_t_moments(
+        theta, data
+    )
+
+    mean_moments_eta = jnp.mean(
+        moments_eta,
+        axis=0
+    )
+
+    mean_moments_nu = jnp.mean(
+        moments_nu,
+        axis=0
+    )
+
+    return jnp.concatenate([
+        mean_moments_eta,
+        mean_moments_nu
+    ])
+
+    # -------------------------------------------------
+    # 7. Define GMM function to minimize
+    # -------------------------------------------------
+
+def gmm_objective(theta, data):
+
+    moments = sample_moments(
+        theta,
+        data
+    )
+
+    return jnp.sum(moments ** 2)
+
+
+
+    # -------------------------------------------------
+    # 8. Choose starting value of the parameters
+    # -------------------------------------------------
+
+theta_start = jnp.array([
+    1.0,   # alpha
+    1.0,   # gamma
+    1.0,   # mu
+    0.0,   # rho
+    0.5    # beta
+])
+
+gmm_gradient = jax.jit(
+    jax.grad(gmm_objective)
+)
+
+
+
+
+    # -------------------------------------------------
+    # 9. Run for scenario 1
+    # -------------------------------------------------
+
+
+data1 = (
+    jnp.array(df1["w"].values),
+    jnp.array(df1["L"].values),
+    jnp.array(df1["u"].values),
+    jnp.array(df1["p"].values)
+)
+
+
+result1 = minimize(
+    fun=lambda theta: float(
+        gmm_objective(theta, data1)
+    ),
+    x0=theta_start,
+    jac=lambda theta: jnp.asarray(
+        gmm_gradient(theta, data1)
+    ).astype(float),
+    method="BFGS"
+)
+
+theta_hat_1 = result1.x
+
+
+# Print results
+print("Estimated parameters:")
+print("alpha =", theta_hat_1[0])
+print("gamma =", theta_hat_1[1])
+print("mu    =", theta_hat_1[2])
+print("rho   =", theta_hat_1[3])
+print("beta  =", theta_hat_1[4])
+
+print("\nNumber of function evaluations:", result1.nfev)
+print("Number of gradient evaluations:", result1.njev)
+print("Converged:", result1.success)
+
+
+
+print("\nGMM objective:")
+print(float(gmm_objective(theta_hat_1, data1)))
+
+print("\nEstimated sample moments:")
+print(sample_moments(theta_hat_1, data1))
+
+
+theta_true = jnp.array([
+    0.5,
+    0.8,
+    0.2,
+    0.1,
+    0.6
+])
+
+
+# Compare with true parameter values]
+print("\nGMM objective at true theta:")
+print(float(gmm_objective(theta_true, data1)))
+
+print("\nSample moments at true theta:")
+print(sample_moments(theta_true, data1))
+
+
+
+    # -------------------------------------------------
+    # 10. Run for scenario 2 - The true monopsony!!!
+    # -------------------------------------------------
+
+
+data2 = (
+    jnp.array(df2["w"].values),
+    jnp.array(df2["L"].values),
+    jnp.array(df2["u"].values),
+    jnp.array(df2["p"].values)
+)
+
+
+result2 = minimize(
+    fun=lambda theta: float(
+        gmm_objective(theta, data2)
+    ),
+    x0=theta_start,
+    jac=lambda theta: jnp.asarray(
+        gmm_gradient(theta, data2)
+    ).astype(float),
+    method="BFGS"
+)
+
+theta_hat_2 = result2.x
+
+# Print results
+print("Estimated parameters:")
+print("alpha =", theta_hat_2[0])
+print("gamma =", theta_hat_2[1])
+print("mu    =", theta_hat_2[2])
+print("rho   =", theta_hat_2[3])
+print("beta  =", theta_hat_2[4])
+
+print("\nNumber of function evaluations:", result2.nfev)
+print("Number of gradient evaluations:", result2.njev)
+print("Converged:", result2.success)
+
+
+# Compare with true parameter values]
+print("\nGMM objective:")
+print(float(gmm_objective(theta_hat_2, data2)))
+
+print("\nEstimated sample moments:")
+print(sample_moments(theta_hat_2, data2))
+
+
+theta_true = jnp.array([
+    0.5,
+    0.8,
+    0.2,
+    0.1,
+    0.6
+])
+
+print("\nGMM objective at true theta:")
+print(float(gmm_objective(theta_true, data2)))
+
+print("\nSample moments at true theta:")
+print(sample_moments(theta_true, data2))
+
+
+
+
+    # -------------------------------------------------
+    # 11. Run for scenario 3
+    # -------------------------------------------------
+
+
+data3 = (
+    jnp.array(df3["w"].values),
+    jnp.array(df3["L"].values),
+    jnp.array(df3["u"].values),
+    jnp.array(df3["p"].values)
+)
+
+
+result3 = minimize(
+    fun=lambda theta: float(
+        gmm_objective(theta, data3)
+    ),
+    x0=theta_start,
+    jac=lambda theta: jnp.asarray(
+        gmm_gradient(theta, data3)
+    ).astype(float),
+    method="BFGS"
+)
+
+theta_hat_3 = result3.x
+
+print("Estimated parameters:")
+print("alpha =", theta_hat_3[0])
+print("gamma =", theta_hat_3[1])
+print("mu    =", theta_hat_3[2])
+print("rho   =", theta_hat_3[3])
+print("beta  =", theta_hat_3[4])
+
+print("\nNumber of function evaluations:", result3.nfev)
+print("Number of gradient evaluations:", result3.njev)
+print("Converged:", result3.success)
+
+
+
+print("\nGMM objective:")
+print(float(gmm_objective(theta_hat_3, data3)))
+
+print("\nEstimated sample moments:")
+print(sample_moments(theta_hat_3, data3))
+
+
+theta_true = jnp.array([
+    0.5,
+    0.8,
+    0.2,
+    0.1,
+    0.6
+])
+
+print("\nGMM objective at true theta:")
+print(float(gmm_objective(theta_true, data3)))
+
+print("\nSample moments at true theta:")
+print(sample_moments(theta_true, data3))
