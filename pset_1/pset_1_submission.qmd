@@ -106,30 +106,75 @@ $M$ is increasing in $\gamma$, in $\rho$, and does not depend on $\mu$. It is al
 ## Part 1: theory and DGP
 ### i. Derive expression for share of consumers
 
-We use a McFadden style discrete choice setup. We assume that each consumer chooses exactly one of the five bikes, so there is no outside option, and add an i.i.d. Type I extreme value taste shock $\epsilon_{ij}$ to the utility given in the question:
+Each consumer $i$, when consuming bike $j$, obtains utility
+$$
+U_{ij}=\exp\Big(\beta_w w_j + \beta_g g_j\Big) - \alpha_i p_j,
+$$
+where $\alpha_i\overset{i.i.d.}{\sim}\operatorname{LogNormal}(\mu,1)$
 
+
+The probability that consumer $i$ chooses bike $j$ is typically
 $$
-U_{ij}=\delta_j-\alpha_i p_j+\epsilon_{ij}, \qquad \delta_j=\exp(\beta_w w_j+\beta_g g_j),
+  P_{ij} = P\Big\{U_{ij} \geq U_{ik}\quad\forall k\Big\}.
 $$
-where
+But, because there is no consumer-good idyosyncratic term, there can be ties with non-zero probability. This is very similar to the Bresnahan vertical differentiation model, but with heterogeneity in $\alpha_i$ that multiplies prices, instead of the $v_i$ that multiplies qualities. To deal with this, we will reduce the good characterics into a single measure of quality, which is all that matters for decision-making. Define the quality of good $j$ as
 $$
-\alpha_i\sim\operatorname{LogNormal}(\mu,1).
+  q_j = \exp\Big(\beta_w w_j + \beta_g g_j\Big).  
+$$
+Then the utility obtained when consuming good $j$ is $U_{ij} = q_j - \alpha_i p_j.$ The consumer chooses from a menu of $(q_j, p_j)$ to maximize utility, depending on $\alpha_i$. Without loss of generality, we can reorder goods using $q_1 \leq q_2 \leq \dots \leq q_J$, with the possibility of ties. 
+
+If there is a tie between goods $j$ and $j+1$, where $q_j = q_{j+1}$, one of two things will occur. The first case is $p_j = p_{j+1}$, and both are equally good choices for the consumer. In this case, we assume the consumer will flip a coin to pick each with 50\% probability. If there is a perfect tie between $k$ goods, the consumer may pick each with probability $1/k$. The second case is that $p_j \neq p_{j+1}$, so we can assume $p_j < p_{j+1}$ WLOG. But then, $U_{i,j} > U_{i, j+1}$ for all consumers $i$, meaning that good $j+1$ is strictly dominated. As no one will choose it, it will have zero market share. Our approach is that, in case of a perfect tie, we remove all but one of the options from the choice set. The remaining good is representative of all duplicates combined.
+
+In general, any good $k$ is strictly dominated by $j$ if $(q_k, -p_k) \leq (q_j, p_j)$, element-by-element, and they are not exactly equal. We can safely remove strictly dominated goods from our menu. Since we are removing ties, this already implies that both qualities and prices much go in the same direction. We can arrange the remaining goods such that $q_1 < q_2 < \dots$ and $p_1 < p_2 < \dots$. Even more strongly, assume three consecutive goods $j$, $j+1$, and $j+2$, have
+$$
+\frac{q_{j+1} - q_j}{p_{j+1} - p_j} \leq \frac{q_{j+2} - q_{j+1}}{p_{j+2} - p_{j+1}}.
+$$
+We will show that almost no consumer will pick good $j+1$. Assume consumer $i$ chooses $j+1$. Then, he prefers it to both $j$ and $j+2$, meaning $q_{j+1} - \alpha_i p_{j+1} \geq q_{j} - \alpha_i p_{j}$. Rearranging,
+$$
+  \alpha_i \leq \frac{q_{j+1} - q_j}{p_{j+1} - p_j}.
+$$
+Doing the same for $j+1$ and $j+2$, as $q_{j+1} - \alpha_i p_{j+1} \geq q_{j+2} - \alpha_i p_{j+2}$, then
+$$
+  \alpha_i \geq \frac{q_{j+2} - q_{j+1}}{p_{j+2} - p_{j+1}}.
+$$
+Combining the two, this implies
+$$
+\frac{q_{j+2} - q_{j+1}}{p_{j+2} - p_{j+1}} \leq \alpha_i \leq \frac{q_{j+1} - q_j}{p_{j+1} - p_j}.
+$$
+Along with our initial assumption that the ratios are actually increasing, the only way both can be true is if $\alpha$ is exactly equal to both ratios. Because this happens with zero probability, removing goods like $j+1$ also will not affect choice probabilities (almost everywhere), and will therefore not change market shares. This means that there is no loss to imposing the assumption
+$$
+\frac{q_{j+1} - q_j}{p_{j+1} - p_j} > \frac{q_{j+2} - q_{j+1}}{p_{j+2} - p_{j+1}}.
 $$
 
-The Type I extreme value assumption gives the standard conditional logit choice probability (McFadden, 1973， 1981). Conditional on $\alpha_i$,
+Therefore, we construct a reduced menu $\widetilde{C}$ of available pairs $(q_j, -p_j)$. Because we are only looking at a set of $(q, -p)$ choices and not individual goods, there are no perfect ties by construction. We also rule out strict dominance by removing goods $j$ such that $(q_j, -p_j) \leq (q_k, -p_k)$ for some $k\neq j$. Goods are then places in a stricly increasing order of both quality and prices. Finaly, we remove the possibility of increasing slopes by, given this ordering, removing any good $j+1$ such that
 $$
-P_{ij}(\alpha_i)=\frac{\exp(\delta_j-\alpha_i p_j)}{\sum_{k\in\mathcal J}\exp(\delta_k-\alpha_i p_k)}.
+\frac{q_{j+1} - q_j}{p_{j+1} - p_j} \leq \frac{q_{j+2} - q_{j+1}}{p_{j+2} - p_{j+1}}.
+$$
+This is done iteratively: we order the goods and compute the slopes. Then, we remove any non-increasing slopes, reassign the order and repeat. When choosing from this menu, consumers will have a unique best choice with probability 1. To see why, assume a consumer is indifferent between $(q, -p)$ and $(q', -p')$. Then, $q - \alpha_i p = q' - \alpha_i p'$, which pins down a particular value for $\alpha_i = (q'-q)/(p'-p)$, which happens with zero probability, by the distribution of $\alpha_i$. Also, the choice will never be empty: as they choose from a finite list of real numbers, one of them must be the highest. This means that, when integrating choice probabilities into market shares, we do not need to worry about multiplicity of choices.
+
+Order the choices in $\widetilde{C}$ by quality, with $q_1 < q_2 < \dots < q_{\widetilde{J}}$. By construction, the same order applies to prices, $p_1 < p_2 < \dots < p_{\widetilde{J}}$, and to slopes. Finally, we can compute choice probabilities. Individual $i$ chooses $j$ if, and only if, $q_j - \alpha_i p_j \geq q_k - \alpha_i p_k$ for all pairs $(q_k, -p_j) \in \widetilde{C}$. But we can simplify the expression by only looking at neighbors, as in the Bresnahan vertical differentiation model, thanks to the decreasing slopes restriction.
+
+Individual $i$ prefers good $j$ over $j+1$ when $q_j - \alpha_i p_j \geq q_{j+1} - \alpha_i p_{j+1}$. Assume, by contradiction, that he prefers good $j+2$ over $j$, so $q_j - \alpha_i p_j \leq q_{j+2} - \alpha_i p_{j+2}$. These two imply
+$$
+\frac{q_{j+1} - q_j}{p_{j+1} - p_j} \leq \alpha_i \leq \frac{q_{j+2} - q_j}{p_{j+2} - p_j},
+$$
+Which is impossible in our menu $\widetilde{C}$ by construction. As a result, if a consumer prefers $j$ over $j+1$, they will also prefer $j$ over $j+2$, and so on. Symmetrically, if he prefers $j$ over $j-1$, he will also prefer $j$ over all lower goods. Because of this, preferring $j$ to both neighbors is equivalent to $j$ being the global optimum. The probability that individual $i$ chooses $j$ is
+\begin{align*}
+P_{ij} &= P\Big\{\text{$i$ prefers $j$ to $j+1$ and to $j-1$}\Big\}\\
+&= P\Big\{q_j - \alpha_i p_j \geq q_{j+1} - \alpha_i p_{j+1},\quad q_j - \alpha_i p_{j}\geq q_{j-1} - \alpha_i p_{j-1}\Big\}\\
+&=P\left\{\frac{q_{j+1} - q_j}{p_{j+1} - p_j} \leq \alpha_i \leq \frac{q_j - q_{j-1}}{p_j - p_{j-1}}\right\}.
+\end{align*}
+For a given consumer that observes his $\alpha_i$, this expression is either 0 or 1. In knife-edge cases where a consumer falls exactly at the margin, this would predict that they could choose more than one good. But this occurs with zero probability, so when we aggregate, each pair $(q_j, -p_j)$ in $\widetilde{C}$ will have market share
+$$
+  s(q_j, -p_j) = \int_0^\infty \mathbb{I}\left[\frac{q_{j+1} - q_j}{p_{j+1} - p_j} \leq \alpha \leq \frac{q_j - q_{j-1}}{p_j - p_{j-1}}\right]\,\mathrm{d}F(\alpha)\\
+  = F\left(\frac{q_j - q_{j-1}}{p_j - p_{j-1}}\right) - F\left(\frac{q_{j+1} - q_j}{p_{j+1} - p_j}\right),
+$$
+where $F$ is the cdf of $\alpha_i$. Define $\text{ties}_j$ equal to the number of goods exactly tied in both quality and price with good $j$, including $j$. If $j$ has no ties, $\text{ties}_j = 1$. To summarize, the market share of a good $j$ is
+$$
+  s_j = \frac{s(q_j, -p_j)}{\text{ties}_j},\text{ if $(q_j, -p_j) \in \widetilde{C}$},\quad\text{and $0$ otherwise}.
 $$
 
-Because consumers differ in $\alpha_i$, aggregate demand is a mixed logit: we integrate the conditional choice probability over the distribution of $\alpha_i$. Since the total mass of consumers is normalized to one, the market share of product $j$ is also the fraction of consumers choosing $j$,
-$$
-s_j(\mathbf p)=\int_0^\infty P_{ij}(\alpha)f_\alpha(\alpha;\mu)\,d\alpha.
-$$
-Thus $\sum_j s_j=1$ under our NO outside option assumption (satisfies requirement of the problem). For numerical integration, we write
-$$
-\alpha_i=\exp(\mu+z_i), \qquad z_i\sim N(0,1).
-$$
-This is the same setup as the basic random coefficients logit structure commonly used in differentiated products demand models we've read about.
+\pagebreak
 
 ### ii. Bertrand-Nash price equilibrium
 
