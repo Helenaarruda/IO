@@ -173,6 +173,7 @@ where $F$ is the cdf of $\alpha_i$. Define $\text{ties}_j$ equal to the number o
 $$
   s_j = \frac{s(q_j, -p_j)}{\text{ties}_j},\text{ if $(q_j, -p_j) \in \widetilde{C}$},\quad\text{and $0$ otherwise}.
 $$
+For the worst good to have a well-defined market share, there is also the outside option of not buying anything, with $q_0 = p_0 = 0$. And for the best good, everyone with low enough $\alpha_i$ purchases it, so that its market share is $F(\dots)$, only with the first term.
 
 \pagebreak
 
@@ -180,7 +181,7 @@ $$
 
 On the supply side, we assume a static multi product Bertrand-Nash game. Alan and Bianchi choose prices simultaneously, each taking the rival firm's prices as given. Product characteristics and marginal costs are taken as given, and each firm chooses the prices of all products it owns to maximize its total profit.
 
-Alan owns $\mathcal J_A=\{a_1,a_2,a_3\}$ and Bianchi owns $\mathcal J_B=\{b_1,b_2\}$. Firm $f$'s profit in market $t$ is
+Alan owns $\mathcal J_A=\{a_1,a_2,a_3\}$ and Bianchi owns $\mathcal J_B=\{b_1,b_2\}$. Firm $f$'s profit in time $t$ is
 $$
 \pi_{ft}=\sum_{k\in\mathcal J_f}(p_{kt}-mc_{kt})s_{kt}(\mathbf p_t).
 $$
@@ -211,9 +212,7 @@ $$
 \end{pmatrix}.
 $$
 
-Thus $\Omega$ simply tells the model which cross price effects a firm internalizes. Alan internalizes the effects of changing one Alan price on all three Alan products, while Bianchi does the same for its two products. Neither firm internalizes the effect of its pricing decision on the rival firm's profit.
-
-We define
+Thus $\Omega$ simply tells the model which cross price effects a firm internalizes. Alan internalizes the effects of changing one Alan price on all three Alan products, while Bianchi does the same for its two products. Neither firm internalizes the effect of its pricing decision on the rival firm's profit. We define
 $$
 D_t=\left[\frac{\partial s_{kt}}{\partial p_{jt}}\right]_{k,j}
 $$
@@ -236,47 +235,22 @@ $$
 \mathbf s_t-\Delta_t(\mathbf p_t-\mathbf{mc}_t)=\mathbf 0.
 $$
 
-in terms of matrices notation.
-
-If we assume $\Delta_t$ is invertible,
-
+If $\Delta_t$ is invertible,
 $$
 \mathbf p_t-\mathbf{mc}_t=\Delta_t^{-1}\mathbf s_t.
 $$
 
 ### iii. Product positioning and marginal costs
 
-We interpret $w_t,g_t$ in the cost expression as the product characteristics $w_j,g_j$ from the table (or we simply assume $w_{tj}=w_j,g_{tj}=g_j$, so that bike characteristics are fixed over time).
+Again, we use the definition of quality as $q_j = \exp\Big(\beta_w w_j + \beta_g g_j\Big)$, with the parameter values from the question. Also plugging in the marginal cost functions from the question,
 
-From above, we measure product quality by the deterministic utility component
-
-$$
-\delta_j=\exp(\beta_w w_j+\beta_g g_j),
-$$
-
-and marginal cost is, as defined by the question,
-
-$$
-MC_{jt}=\gamma_w(1-w_j)c_t+\gamma_g g_j, \qquad c_t=0.5+\frac{t}{10}.
-$$
-
-Thus
-
-$$
-c_1=0.6, \qquad c_{10}=1.5.
-$$
-
-The plots for $t=1$ and $t=10$ follows:
-
-![](output/q2_part1_iii_t1.png){fig-cap="Product positioning and marginal costs at $t=1$." width=75%}
-
-![](output/q2_part1_iii_t10.png){fig-cap="Product positioning and marginal costs at $t=10$." width=75%}
+![Product positioning and marginal cost at $t=1$ and $t=10$.](output/product_positioning.png){#fig-product-positioning width=100%}
 
 Note that for $t=1$, $a_2$ and $b_1$ coincide as they have the same marginal cost. Also, we see that marginal cost rises over time for every product except $a_3$, because $w_{a_3}=1$ makes its carbon cost component equal to zero.
 
 ### iv. Brief comment on market shares and competition
 
-Product characteristics, and therefore $\delta_j$, are fixed over time. The change in relative positioning therefore comes from marginal costs:
+Product characteristics, and therefore quality, are fixed over time. The change in relative positioning therefore comes from marginal costs:
 
 $$
 \Delta MC_j=\gamma_w(1-w_j)(c_{10}-c_1)=0.225(1-w_j).
@@ -288,7 +262,7 @@ $$
 (\Delta MC_{a_1},\Delta MC_{a_2},\Delta MC_{a_3},\Delta MC_{b_1},\Delta MC_{b_2})=(0.1575,0.2025,0,0.1575,0.1125).
 $$
 
-We therefore expect $a_3$ to gain market share because its marginal cost does not increase. $b_2$ should also gain relative to products whose costs rise more, while $a_2$, which has the largest cost increase, should lose.
+We expect $a_3$ to gain market share because its marginal cost does not increase. $b_2$ should also gain relative to products whose costs rise more, while $a_2$, which has the largest cost increase, should lose.
 
 The comparison between $a_2$ and $b_1$ is clear as they have identical quality (same value on x-axis), but by $t=10$,
 
@@ -296,19 +270,51 @@ $$
 MC_{a_2,10}=0.9075>0.8625=MC_{b_1,10},
 $$
 
-so $b_1$ gains a cost advantage over $a_2$.
+so $b_1$ gains a cost advantage over $a_2$, and can try to bring prices down until $a_2$ is out of the market. Meanwhile, we see in the graph that the marginal costs of $b_2$ and $a_3$ become closer, such that $b_2$ should lose some competitive edge against $a_3$, as they produce similar quality goods.
 
-The primitive demand side substitutability does not change because product characteristics are fixed. What changes is the firms' cost positioning. Competition between $a_2$ and $b_1$ becomes less symmetric as their costs separate, while on the other hand, the cost gap between $a_3$ and $b_2$ falls from $0.15$ to $0.0375$, making their pricing positions more similar and competitive pressure between them more likely to increase.
+### v. Bertrand NE for different $\mu$
 
-### v.BNE for different $\mu$
+Calling the function that stacks all market shares $D(\mathbf{p}_t; \mu)$, we can substitute into the Bertrand-Nash FOC to have the equilibrium condition
+$$
+  D(\mathbf{p}_t; \mu) = \Delta_t(\mathbf p_t-\mathbf{mc}_t)
+$$
+We can either solve for $\mathbf p_t$ and try to iterate until we find a fixed point, or just directly look for a root of the equation. But we run into a couple of problems related to ties if we try these.
 
-Please check the saved files.
+First, if two firms produce goods with the exact same quality and marginal cost, the market share functions will be discontinuous in prices, and it will be difficult to find a solution because they'll be incentivised to undercut each other, and prices may jump around without converging. We can also not simply drop one of the goods, because that would change the jacobian and one of the firms would ignore the effects that their version of the good has. To deal with this, we impose the following assumption: if two different firms produce goods that are identical in both quality and marginal cost, they will then have directly Bertrand competition among them, such that both of them will price the good at $p_{jt} = \text{mc}_{jt}$ and equally split the market.
+
+The second thing that causes problems is when different firms produce goods that are the same quality, but with differing marginal costs. Assume that happens for a good with $\text{mc}_A < \text{mc}_B$, for example. Firm $A$ is able to undercut until firm $B$ is out of the market, with $p = \text{mc}_B$. The problem is that, then, the best response of firm A is to price at its monopoly price. It may be the case that this new price will be above $\text{mc}_B$, incentivising firm $B$ to rejoin the market. In this case, no Bertrand-Nash Equilibrium exists. The assumption we make is: if two firms produce the same quality good with $\text{mc}_A < \text{mc}_B$, then we remove firm B from the market. This can be interpreted as some entry cost that prevents firm B from reentering to compete again, even if prices are high enough.
+
+To compute the equilibria, we start from a guess of which subset of goods are active, and an initial price vector with $p_j = q_j^2$, which guarantees that the slopes follow a decreasing order. Then, the code removes goods that are strictly dominated and deals with ties as we assumed above (it also checks if there are nondecreasing slopes). Then, we reduce the dimension of the problem to only non-dominated good that do not tie, in hopes that demand will be smooth. To search for the equilibrium, we use a least squares solver to find the price vector that minimizes the error in FOCs, looking only at the goods that remain in the market. As some of the prices are held fixed at some $\text{mc}_j$ and some goods are eliminated from the start, this is a sort of partial equilibrium between the remaining ones.
+
+Most of the time, this algorithm finds an equilibrium (very small deviations in FOCs of non-eliminated firms), but not always, in which case we still keep the smallest deviations the solver could find.
+
+Below, as an example, are the market shares computed between times 1 and 10, for the case $\mu = 0$.
+
+![Market-share paths for the Bertrand-Nash equilibrium, $\mu=0$.](output/market_shares_mu0_bertrand.png){#fig-market-shares width=85%}
+
+And the full datasets are in the `/output/` folder
+
+[Bertrand results: $\mu=-0.5$](output/bikes_1.csv)  
+[Bertrand results: $\mu=0$](output/bikes_2.csv)  
+[Bertrand results: $\mu=0.5$](output/bikes_3.csv)
 
 ### vi. Coordination in $a_2$ and $b_1$ prices
 
 Here Alan choose $p_{a_1}$ and $p_{a_3}$ to maximize $\pi_A$, Bianchi choose $p_{b_2}$ to maximize $\pi_B$, and the pair $(p_{a_2},p_{b_1})$is chosen jointly to maximize total industry profit $\pi_A+\pi_B$ holding the other prices fixed. Thus the game has three price setting decision makers: Alan's noncoordinated products, Bianchi's noncoordinated product, and the coordinated $(a_2,b_1)$ pair. We iterate these three best responses and verify that no decision maker has a profitable deviation. The agreement is valuable because $\delta_{a_2}=\delta_{b_1}.$
 
 The two products have the same deterministic quality and, at $t=1$, the same marginal cost, so they are very close substitutes. Under competition, cutting the price of one steals demand from the other. Coordinating their prices lets the firms take this effect into considerations and reduces the incentive to undercut each other.
+
+Under collusion, it looks a lot more stable
+
+![Market-share paths with $a2$--$b1$ coordination, $\mu=0$.](output/market_shares_mu0_collusion.png){#fig-market-shares-collusion width=85%}
+
+And full datasets are
+
+[Collusion results: $\mu=-0.5$](output/bikes_collusion_1.csv)  
+[Collusion results: $\mu=0$](output/bikes_collusion_2.csv)  
+[Collusion results: $\mu=0.5$](output/bikes_collusion_3.csv)
+
+\pagebreak
 
 ## Part 2: Estimation
 
