@@ -6,18 +6,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+CODE_DIR = Path(__file__).resolve().parent
+ROOT = CODE_DIR.parent
 
 
 def run(script: str, *args: str) -> None:
     subprocess.run(
-        [sys.executable, str(ROOT / script), *args],
+        [sys.executable, str(CODE_DIR / script), *args],
         cwd=ROOT,
         check=True,
     )
 
 
 def main() -> None:
+    run("q1_p2.py")
     run("solve_equilibria.py")
     run("question_iii.py")
     run("plot_market_shares.py", "--case", "both", "--mu", "0")

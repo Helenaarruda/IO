@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "jax",
+    "matplotlib>=3.11.2",
     "pandas",
     "scipy",
 ]

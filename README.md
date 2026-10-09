@@ -3,10 +3,17 @@ IO 1 class files rep
 
 Have the `/pset_1/` folder as your working directory, and be sure to run Python from `IO/pset_1/.venv/bin/python`.
 
-From that folder, run
+From that folder, with the `uv` package installed, run
 ```
-./.venv/bin/python code/run_all.py
+uv sync
+uv run python code/run_all.py
 ```
 in the terminal.
 
-Also check Readme inside folder.
+The master script executes the following scripts in order:
+
+    - `q1_p2.py`: generates simulated datasets and estimates the labor supply and labor demand models.
+    - `solve_equilibria.py`: solves the equilibrium models.
+    - `question_iii.py`: runs the computations for Question III.
+    - `plot_market_shares.py`: generates market-share plots for both cases with (\mu=0).
+    - `estimation.py`: runs the estimation procedure.

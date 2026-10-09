@@ -397,9 +397,9 @@ df3 = pd.DataFrame({
 
 
 # SAVE
-df1.to_csv("pset_1/temp/scenario_1.csv", index=False)
-df2.to_csv("pset_1/temp/scenario_2.csv", index=False)
-df3.to_csv("pset_1/temp/scenario_3.csv", index=False)
+df1.to_csv("temp/scenario_1.csv", index=False)
+df2.to_csv("temp/scenario_2.csv", index=False)
+df3.to_csv("temp/scenario_3.csv", index=False)
 
 print("Datasets generated successfully!")
 
@@ -435,7 +435,7 @@ plt.grid(alpha=0.2)
 
 # Save figure
 plt.savefig(
-    "pset_1/output/wage_unemployment_scenarios.png",
+    "output/wage_unemployment_scenarios.png",
     dpi=300,
     bbox_inches="tight"
 )
@@ -738,7 +738,7 @@ for column in ["Scenario 1", "Scenario 2", "Scenario 3"]:
 
     
 gmm_results_table_display.to_csv(
-    "pset_1/output/gmm_estimation_results_monopsony.csv",
+    "output/gmm_estimation_results_monopsony.csv",
     index=False
 )
 
@@ -996,7 +996,7 @@ for column in ["Scenario 1", "Scenario 2", "Scenario 3"]:
     )
 
 results_wagetaker_display.to_csv(
-    "pset_1/output/gmm_estimation_results_wagetaking.csv",
+    "output/gmm_estimation_results_wagetaking.csv",
     index=False
 )
 
@@ -1335,7 +1335,7 @@ for column in ["Scenario 1", "Scenario 2", "Scenario 3"]:
 # ------------------------------------------------------------
 
 results_conduct_display.to_csv(
-    "pset_1/output/gmm_estimation_results_conduct.csv",
+    "output/gmm_estimation_results_conduct.csv",
     index=False
 )
 
