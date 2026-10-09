@@ -1,0 +1,10 @@
+Parameter,Scenario 1,Scenario 2,Scenario 3
+alpha,0.5101,0.5154,0.5203
+gamma,0.8097,0.8137,0.8198
+mu,0.3563,0.6257,0.5076
+rho,0.3744,0.4609,0.4543
+beta,0.6009,0.2276,0.391
+GMM objective,9.803e-07,0.0008745,0.0002063
+Function evaluations,22,25,30
+Gradient evaluations,22,25,30
+Converged,1,1,1
