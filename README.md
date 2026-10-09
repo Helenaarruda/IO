@@ -5,6 +5,8 @@ Have the `/pset_1/` folder as your working directory, and be sure to run Python 
 
 From that folder, run
 ```
-./.venv/bin/python code/estimation.py
+./.venv/bin/python code/run_all.py
 ```
 in the terminal.
+
+Also check Readme inside folder.
