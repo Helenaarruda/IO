@@ -94,7 +94,7 @@ By the markdown formula
 $$
 M = \left(1 + \dfrac{1}{\gamma + \rho \log(u_t)}\right)^{-1},
 $$
-$M$ is increasing in $\gamma$, in $\rho$, and does not depend on $\mu$. It is also increasing in $\u_t$. Because $M$ is a multiplier, $M$ becoming larger means that wages are being marked down less, hence higher. Here, we rely on $u_t > 1$ to avoid the logs being negative, so unemployment $u_t$ would be defined in absolute terms and not as a fraction.
+$M$ is increasing in $\gamma$, in $\rho$, and does not depend on $\mu$. It is also increasing in $u_t$. Because $M$ is a multiplier, $M$ becoming larger means that wages are being marked down less, hence higher. Here, we rely on $u_t > 1$ to avoid the logs being negative, so unemployment $u_t$ would be defined in absolute terms and not as a fraction.
 
 
 \newpage
@@ -320,116 +320,24 @@ And full datasets are
 
 ### i. Estimator
 
-We define
+Unlike Bresnahan, who estimates supply and demand parameters jointly, we estimate demand parameters first, then use them to back out marginal costs, then estimate the marginal cost parameters. Let $\theta_d=(\beta_w,\beta_g,\mu)$ denote the demand parameters we are looking to estimate. We can write our demand function from before as $D(\mathbf{p}; \theta_d)$, outputs predicted market share vectors. From the data, we observe shares $s_{jt}$ for each good $j$ at time $t$. We assume that market shares are observed with some prediction error $s_{jt} = D_j(\mathbf{p}; \theta_d) + \varepsilon_{jt}$, where $\varepsilon_{jt}\overset{i.i.d.}{\sim} \mathcal{N}(0,\sigma^2)$. Under this assumption, maximizing the log-likelihood is equivalent to solving
 $$
-\theta_d=(\mu,\beta_w,\beta_g).
+\min_{\theta_d} \sum_t \Big\lVert D(\mathbf{p}; \theta_d) - \mathbf s_{t}\Big\rVert^2.
 $$
+From this, we obtain $\widehat\theta_d$. Then, we compute the analytical jacobian of the estimated demand function to build the $\Delta$ matrix for both the Bertrand and collusive ownership matrices. Here, we run into a problem with the inversion of $\Delta$: as some goods have the same prices, it becomes singular. To circumrvent this, we impose the constraint that, when two prices are equal, we assume they are in direct Bertrand competition with each other, hence we impose that their marginal costs will be equal to prices. Doing this, the remaining goods allow for an invertible matrix with which we solve for marginal costs. 
 
-The variance of $\log\alpha_i$ remains fixed at one, as specified in the DGP, so only $\mu$ is estimated from the distribution of price sensitivity.
-
-For a given $\theta_d$, predicted product shares are
+One problem with this is that we cannot distinguish it to the case where two goods are prices exactly the same, but at their monopoly prices due to collusion. This can bias results towards assuming more competition than may exist. It also makes the Bertrand and Collusion assumptions generate the same results, as the two colluding goods are either priced the same, or one is out of the market. We use this method to solve for each $\mathrm{mc}_{jt}$. Finally, we run the linear regression
 $$
-s_{jt}(\theta_d)=\int\frac{\exp(\delta_j-\alpha p_{jt})}{\sum_k\exp(\delta_k-\alpha p_{kt})}f_\alpha(\alpha;\mu)\,d\alpha,
+\mathrm{mc}_{jt} = \gamma_w (1-w_{jt}) c_t + \gamma_g g_{jt} + u_{jt},
 $$
+in order to estimate the supply parameters $\theta_s = (\gamma_w, \gamma_g)$. But, because marginal costs are estimated and not observed, the usual standard errors would be underestimated, as they do not take into account the uncertainty of the first stage.
 
-with same as above
-$$
-\delta_j=\exp(\beta_w w_j+\beta_g g_j).
-$$
+### ii. Results
 
-Because market size is normalized to one, the observed $q_{jt}$ are market shares and satisfy $\sum_jq_{jt}=1$. We therefore use them as choice frequencies. The multinomial log likelihood per consumer in market $t$ is
-$$
-\ell_t(\theta_d)=\sum_jq_{jt}\log s_{jt}(\theta_d).
-$$
+Below are our estimation results. We chose to include several significant digits to show that they do not exactly match the ones in the data, although they are extremely close. The parameter values were not used as initial conditions, so they were actually found as an optimum.
 
-The demand estimator is
+{{< include output/demand_estimates.md >}}
 
-$$
-\hat\theta_d=\arg\max_{\theta_d}\sum_{t=1}^{10}\ell_t(\theta_d).
-$$
+The big downside is that, as we were only able to invert the $\Delta$ matrix to solve for marginal costs by imposing the assumption that, if $p_1 = p_2$, then $\mathrm{mc}_1 = p_1 = p_2$, the different ownership matrices end up not making a difference. The second reason is that, in our simulations, a lot of the goods are out of the market, producing 0, and we also did not use those. Therefore, we cannot use our estimations to identify whether or not the firms were colluding in each case. Also, the supply parameter estimates are very far from the true values.
 
-Following the provided JAX structure, we write the likelihood for one market and use `vmap` to apply it to all 10 markets.
-For the supply side, we impose the competitive Bertrand ownership structure from Part 1(ii). Let
-
-$$
-D_t=\left[\frac{\partial s_{kt}}{\partial p_{jt}}\right]_{k,j}
-$$
-
-evaluated at $\hat\theta_d$ and the observed prices, and define
-
-$$
-\hat\Delta_t=-(\Omega\circ D_t)'.
-$$
-
-The Bertrand FOCs imply
-$$
-\mathbf q_t-\hat\Delta_t(\mathbf p_t-\mathbf{mc}_t)=\mathbf 0,
-$$
-
-so implied marginal costs are
-$$
-\widehat{\mathbf{mc}}_t=\mathbf p_t-\hat\Delta_t^{-1}\mathbf q_t.
-$$
-
-Finally, the structural cost equation is
-
-$$
-MC_{jt}=\gamma_w(1-w_j)c_t+\gamma_g g_j.
-$$
-
-It contains no intercept, so we estimate $(\gamma_w,\gamma_g)$ by OLS without a constant:
-$$
-(\hat\gamma_w,\hat\gamma_g)
-=
-\arg\min_{\gamma_w,\gamma_g}
-\sum_{t,j}
-\left[
-\widehat{MC}_{jt}
--
-\gamma_w(1-w_j)c_t
--
-\gamma_g g_j
-\right]^2.
-$$
-
-
-### ii. Estimation results
-
-The estimates are
-
-| Dataset | $\hat\mu$ | $\hat\beta_w$ | $\hat\beta_g$ | $\hat\gamma_w$ | $\hat\gamma_g$ |
-|---|---:|---:|---:|---:|---:|
-| Competition 1 | -0.5000 | -0.1000 | 0.2000 | 0.2500 | 0.3000 |
-| Competition 2 | 0.0000 | -0.1000 | 0.2000 | 0.2500 | 0.3000 |
-| Competition 3 | 0.5000 | -0.1000 | 0.2000 | 0.2500 | 0.3000 |
-| Collusion 1 | -0.5000 | -0.1000 | 0.2000 | 1.6603 | 0.2106 |
-| Collusion 2 | 0.0000 | -0.1000 | 0.2000 | 1.1025 | 0.2480 |
-| Collusion 3 | 0.5000 | -0.1000 | 0.2000 | 0.7660 | 0.2724 |
-
-For the competitive datasets, the estimator gets all five parameters almost exactly right, which is expected since the estimation model matches how these datasets were generated.
-For the collusive datasets, the demand estimates $\hat\mu,\hat\beta_w,$ and $\hat\beta_g$ barely change. The reason is that collusion changes how firms set prices, but not how consumers choose among products.
-The cost estimates are different. Here the estimator still assumes Bertrand competition even though $a_2$ and $b_1$ were priced jointly, so part of the collusive markup is incorrectly obsorbed into marginal cost. This is why $\hat\gamma_w$ is much larger than the true value $0.25$. The distortion becomes smaller as $\mu$ increases: $\hat\gamma_w$ falls from about $1.66$ to $0.77$, while $\hat\gamma_g$ moves closer to $0.30$. This pattern comes from these simulated datasets and is not a general feature of collusion.
-
-## Part 3: Extra and optional
-
-### i. Households choosing multiple bikes
-
-Let household $h$ have $n_h\in\{1,\ldots,5\}$ members. We assume that each member can buy at most one bike, so the household chooses a bundle
-
-$$\mathbf q_h=(q_{ha_1},\ldots,q_{hb_2}), \qquad q_{hj}\in\mathbb Z_+, \qquad \sum_j q_{hj}\le n_h.$$
-
-We model the household's utility as the sum of the utilities from all bikes it buys:
-
-$$U_h(\mathbf q)=\sum_j q_j\delta_j-\alpha_h\sum_j p_jq_j+\epsilon_{h\mathbf q},$$
-
-where $\alpha_h\sim\operatorname{LogNormal}(\mu,1)$ and $\epsilon_{h\mathbf q}$ is i.i.d. Type-I extreme value across possible bundles. So, conditional on $\alpha_h$, the household chooses among bundles using the same logit idea as before.
-
-If $\lambda_n$ is the fraction of households with $n$ members, demand for product $j$ is
-
-$$Q_j(\mathbf p)=\sum_{n=1}^5\lambda_n\sum_{\mathbf q\in\mathcal B_n}q_jP(\mathbf q\mid n).$$
-
-The main difference from Part 1 is that $Q_j$ is now the expected number of bikes purchased, rather than the fraction of consumers choosing product $j$, because one household can buy more than one bike.
-
-On the supply side, we keep the same Bertrand pricing setup, but replace $s_j$ and its price derivatives with $Q_j$ and its derivatives.
-
-For estimation, if we observe household size and the bundle each household chooses, we can estimate demand from those bundle choices, again integrating over $\alpha_h$. We then recover marginal costs using the new quantity demand Jacobian and estimate $(\gamma_w,\gamma_g)$ as in Part 2. If we only observe aggregate product quantities, we would instead match predicted and observed quantities using minimum distance or GMM.
+{{< include output/supply_estimates.md >}}

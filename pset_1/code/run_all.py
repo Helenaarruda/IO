@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent
 
 
 def run(script: str, *args: str) -> None:
@@ -21,6 +21,7 @@ def main() -> None:
     run("solve_equilibria.py")
     run("question_iii.py")
     run("plot_market_shares.py", "--case", "both", "--mu", "0")
+    run("estimation.py")
     print("\nAll computational outputs have been generated.")
 
 

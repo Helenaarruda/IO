@@ -37,12 +37,13 @@ def assignment_rows(eq, t: int) -> list[dict[str, object]]:
     """Create the exact seven-column assignment panel for all original products."""
     p = eq.product_prices()
     ct = carbon_cost(t)
+    shares = eq.product_shares()
     rows = []
     for j in range(len(PRODUCTS)):
         rows.append({
             "j": PRODUCTS[j],
             "t": t,
-            "qjt": f"{Q[j]:.15g}",
+            "qjt": f"{shares[j]:.15g}",
             "pjt": f"{p[j]:.15g}",
             "wj": f"{W[j]:.15g}",
             "gj": f"{G[j]:.15g}",
