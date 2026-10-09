@@ -1,0 +1,8 @@
+parameter,estimate,best_objective_SSE
+beta_w,-0.095,15000.0
+beta_g,0.195,15000.0
+gamma_w,0.24,15000.0
+gamma_g,0.295,15000.0
+mu (scenario -0.5),-0.45,15000.0
+mu (scenario 0),0.05,15000.0
+mu (scenario +0.5),0.45,15000.0

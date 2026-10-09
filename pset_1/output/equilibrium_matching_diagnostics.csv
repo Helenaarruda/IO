@@ -1,0 +1,2 @@
+optimizer_success,optimizer_message,outer_function_evaluations,objective_SSE,SSE_shares,RMSE_shares,SSE_prices,RMSE_prices,share_moments,price_moments,price_weight,elapsed_seconds
+True,`gtol` termination condition is satisfied.,9,15000.0,,,,,300,0,1.0,0.07148504257202148

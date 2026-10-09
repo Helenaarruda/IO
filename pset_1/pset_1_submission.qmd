@@ -549,76 +549,9 @@ And full datasets are
 
 ### i. Estimator
 
-We define
+Unlike Bresnahan, who estimates supply and demand parameters jointly, we estimate demand parameters first, then use them to back out marginal costs, then estimate the marginal cost parameters. Let $\theta_d=(\beta_w,\beta_g,\mu)$ denote the demand parameters we are looking to estimate. We can write our demand function from before as $D(\mathbf{p}; \theta_d)$, outputs predicted market share vectors. From the data, we observe shares $s_{jt}$ for each good $j$ at time $t$. We assume that market shares are observed with some prediction error $s_{jt} = D_j(\mathbf{p}; \theta_d) + \varepsilon_{jt}$, where $\varepsilon_{jt}\overset{i.i.d.}{\sim} \mathcal{N}(0,\sigma^2)$. Under this assumption, maximizing the log-likelihood is equivalent to solving
 $$
-\theta_d=(\mu,\beta_w,\beta_g).
-$$
-
-The variance of $\log\alpha_i$ remains fixed at one, as specified in the DGP, so only $\mu$ is estimated from the distribution of price sensitivity.
-
-For a given $\theta_d$, predicted product shares are
-$$
-s_{jt}(\theta_d)=\int\frac{\exp(\delta_j-\alpha p_{jt})}{\sum_k\exp(\delta_k-\alpha p_{kt})}f_\alpha(\alpha;\mu)\,d\alpha,
-$$
-
-with same as above
-$$
-\delta_j=\exp(\beta_w w_j+\beta_g g_j).
-$$
-
-Because market size is normalized to one, the observed $q_{jt}$ are market shares and satisfy $\sum_jq_{jt}=1$. We therefore use them as choice frequencies. The multinomial log likelihood per consumer in market $t$ is
-$$
-\ell_t(\theta_d)=\sum_jq_{jt}\log s_{jt}(\theta_d).
-$$
-
-The demand estimator is
-
-$$
-\hat\theta_d=\arg\max_{\theta_d}\sum_{t=1}^{10}\ell_t(\theta_d).
-$$
-
-Following the provided JAX structure, we write the likelihood for one market and use `vmap` to apply it to all 10 markets.
-For the supply side, we impose the competitive Bertrand ownership structure from Part 1(ii). Let
-
-$$
-D_t=\left[\frac{\partial s_{kt}}{\partial p_{jt}}\right]_{k,j}
-$$
-
-evaluated at $\hat\theta_d$ and the observed prices, and define
-
-$$
-\hat\Delta_t=-(\Omega\circ D_t)'.
-$$
-
-The Bertrand FOCs imply
-$$
-\mathbf q_t-\hat\Delta_t(\mathbf p_t-\mathbf{mc}_t)=\mathbf 0,
-$$
-
-so implied marginal costs are
-$$
-\widehat{\mathbf{mc}}_t=\mathbf p_t-\hat\Delta_t^{-1}\mathbf q_t.
-$$
-
-Finally, the structural cost equation is
-
-$$
-MC_{jt}=\gamma_w(1-w_j)c_t+\gamma_g g_j.
-$$
-
-It contains no intercept, so we estimate $(\gamma_w,\gamma_g)$ by OLS without a constant:
-$$
-(\hat\gamma_w,\hat\gamma_g)
-=
-\arg\min_{\gamma_w,\gamma_g}
-\sum_{t,j}
-\left[
-\widehat{MC}_{jt}
--
-\gamma_w(1-w_j)c_t
--
-\gamma_g g_j
-\right]^2.
+\min_{\theta_d} \sum_t \Big\lVert D(\mathbf{p}; \theta_d) - \mathbf s_{t}\Big\rVert^2.
 $$
 
 
