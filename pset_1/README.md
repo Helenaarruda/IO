@@ -1,7 +1,9 @@
+# Monopsonist firm part
+- `q1_p2.py`: runs part 2 and estimation parts of question 1. Produces dataframes, generates graph comparing 'w' and 'u' relationships and develops estimations for $theta$ parameters.
+
 # Bikes computational project
 
 ## Organization
-- `q1_p2.py`: runs part 2 and estimation parts of question 1. Produces dataframes, generates graph comparing 'w' and 'u' relationships and develops estimations for $theta$ parameters.
 - `bikes_model.py`: model primitives, costs, exact-quality tie rules, demand, analytical demand Jacobian, active-hull solver, and equilibrium verification.
 - `solve_equilibria.py`: solves all `t=1,...,10` for `mu=-0.5,0,0.5` under Bertrand-Nash and under the `a2`-`b1` coordination assumption. Writes the six required assignment CSVs, market-share panel, and diagnostics.
 - `question_iii.py`: produces the Bresnahan-style product-positioning figure for `t=1` and `t=10`.
