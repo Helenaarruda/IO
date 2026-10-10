@@ -341,3 +341,31 @@ Below are our estimation results. We chose to include several significant digits
 The big downside is that, as we were only able to invert the $\Delta$ matrix to solve for marginal costs by imposing the assumption that, if $p_1 = p_2$, then $\mathrm{mc}_1 = p_1 = p_2$, the different ownership matrices end up not making a difference. The second reason is that, in our simulations, a lot of the goods are out of the market, producing 0, and we also did not use those. Therefore, we cannot use our estimations to identify whether or not the firms were colluding in each case. Also, the supply parameter estimates are very far from the true values.
 
 {{< include output/supply_estimates.md >}}
+
+\pagebreak
+
+## Part 3: Extra and optional
+
+### i. Households choosing multiple bikes
+
+Let household $h$ have $n_h\in\{1,\ldots,5\}$ members. In the spirit of Hendel (1999), we assume that each member can buy at most one bike, so the household chooses a bundle
+
+$$\mathbf x_h=(x_{ha_1},\ldots,x_{hb_2}), \qquad x_{hj}\in\mathbb Z_+, \qquad \sum_j x_{hj}\le n_h.$$
+
+We model the household's utility as the sum of the utilities from all household members, with each one having a different $\alpha_i$. We assume that each family member makes exactly the same choices as before, and they get aggregated into household purchases. Because of this, we have the same intervals as before: individual with $\alpha_i \in I_j$ will prefer to purchase bike $I_j$. Therefore, aggregating these choices, each household has demand
+$$
+x_{hj} = \sum_{i=1}^{n_h} \mathbb{I}[\alpha_i \in I_j].
+$$
+Integrating over the distribution of $\alpha_i$, the total market demand is, in expectation,
+$$
+x_j = \sum_{h = 1}^H\sum_{i = 1}^{n_h} P\{\alpha_i \in I_j\}.
+$$
+But, because the problem has the same structure as before in the individual level, $P\{\alpha_i\in I_j\}$ is the same as our market shares from before, $D_j(\mathbf{p})$. If we only observe the aggregate purchases of each bike, adding the family structure with nothing extra does not meaningfully change the model. If we, for example, were to add some correlation in choices within choices by adding a common error term to all members of the same household, it becomes more interesting. To take advantage of the log normal assumption, assume that each individual $i$ in household $j$, instead of just $\alpha_i$, has $\alpha_i \times \beta_h$, with $\beta_h$ also independently drawn from a log normal from each family, multiplying prices in the utility. Then, aggregate demand will be
+$$
+x_j = \sum_{h = 1}^H\sum_{i = 1}^{n_h} P\Big\{\alpha_i\beta_h \in I_j\Big\}.
+$$
+If we symbolically write $I_j/\beta_h$ as the interval with both endpoints divided by $\beta_h$, we have $P\Big\{\alpha_i \in I_j/\beta_h\Big\}$. What is interesting about this is that, as the intervals are made up of terms like $(q_j - q_{j-1})/(p_j - p_{j-1})$, dividing everything by $\beta_h$ is the same as multiplying all prices by $\beta_h$. It is as if each household observes distorted prices. In expected value,
+$$
+\mathbb{E}_{\alpha}[x_j] = \sum_{h=1}^H \sum_{i=1}^{n_h} D_j(\beta_h\mathrm{p}) = \sum_{h=1}^H n_h D_j(\beta_h\mathrm{p}),
+$$
+where we have integrated over individual heterogeneity, but still kept household heterogeneity. In fact, the expected (only over $\alpha$) demand for good $j$ from each household is $n_h D_j(\beta_h\mathrm{p})$. If we observe household size and the bundle each household chooses, we can estimate demand from those bundle choices, using the same functional form for $D_j$ as we had before. As we still have to estimate the variance of $\beta_h$ (or of its log), for each guess of utility parameter values, we can pick the $\sigma_\beta^2$ that maximizes the likelihood that household demands we observe have $\beta_h$ values that stem from a log normal with that parameter. This way, each set of utility parameters $\theta_d$ will map to one parameter for $\log \beta_h \sim \mathcal{N}(0, \sigma^2_\beta)$. So, for each guess of $\theta_d$ we can compute the expected demand of each family, and try to find the parameters that minimize its distance to the observed demand.
