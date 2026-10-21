@@ -1,3 +1,97 @@
-## Part 3
+### 12. Models with Random Coefficients
 
-<!-- Add Part 3 work here. This file is included by pset2_submission.qmd. -->
+We estimate the four specifications in using the 2,800 product observations from 400 campus year markets. As copied from Part II.5, the normalized utility is
+
+$$
+u_{ijmt}=\alpha p_{jmt}+\mu_j+x_{jmt}'\beta_i+\xi_{jmt}+\epsilon_{ijmt},\qquad \alpha<0,
+$$
+
+where $x_{jmt}$ contains spicy index, wheat content, vegetable to meat ratio, and calories, and $\epsilon_{ijmt}$ is standard type-I extreme value as assumed. The outside option has zero normalized utility. We estimate
+
+$$
+\begin{aligned}
+(a)\quad &\beta_i\sim N(\bar\beta,\Sigma),\quad\Sigma\text{ diagonal},\\
+(b)\quad &\beta_i=\beta^A A_i+\beta^G G_i,\\
+(c)\quad &\beta_i\sim N(\beta^A A_i+\beta^G G_i,\Sigma),\quad\Sigma\text{ diagonal},\\
+(d)\quad &\beta_i\sim N(\beta^A A_i+\beta^G G_i,\Sigma),
+\end{aligned}
+$$
+
+where model (d) allows correlations among wheat, veg/meat, and calorie tastes but not with spicy tastes. We use the exact mean structure specified in the question, without adding a common mean to models (b)--(d). Since the campus year data contain only the marginal shares of athletes and graduate students, we assume independence between these two statuses within markets.
+
+Following Berry, Levinsohn, and Pakes (1995) and Nevo (2000, 2001), we invert simulated choice shares to recover market mean utilities and estimate linear coefficients by IV within the two step GMM. IV consist of exogenous characteristics, dish indicators, local cost indices, cost characteristic interactions, and other products' characteristics (31 independent columns). We approximate the distribution of consumer preferences using 512 fixed simulation draws. The recovered mean utilities match the observed shares to numerical precision.
+
+**Table III.1. Price coefficients, mean preferences, taste standard deviatin**
+
+| Parameter     |  \(a\) |  \(b\) |  \(c\) |  \(d\) |
+|:--------------|-------:|-------:|-------:|-------:|
+| Price         | -0.850 | -0.851 | -0.882 | -0.921 |
+| Mean spicy    | -0.024 |     -- |     -- |     -- |
+| Mean wheat    |  0.293 |     -- |     -- |     -- |
+| Mean veg/meat |  0.036 |     -- |     -- |     -- |
+| Mean calories |  0.161 |     -- |     -- |     -- |
+| SD spicy      |  0.003 |     -- |  0.000 |  0.592 |
+| SD wheat      |  0.272 |     -- |  0.295 |  0.356 |
+| SD veg/meat   |  0.591 |     -- |  0.847 |  0.662 |
+| SD calories   |  0.001 |     -- |  0.004 |  0.208 |
+
+**Table III.2. Athlete and graduate mean taste coefficients**
+
+| Characteristic | \(b\) Athlete | \(b\) Grad | \(c\) Athlete | \(c\) Grad | \(d\) Athlete | \(d\) Grad |
+|:---|---:|---:|---:|---:|---:|---:|
+| Spicy | 0.006 | 0.039 | -0.606 | 0.566 | -0.638 | 0.548 |
+| Wheat | 0.234 | 0.305 | 0.164 | 0.400 | 0.352 | 0.240 |
+| Veg/meat | -1.327 | 1.539 | -0.316 | 0.507 | -0.463 | 0.576 |
+| Calories | 1.524 | -1.290 | 1.547 | -1.334 | 1.450 | -1.231 |
+
+Price coefficients are negative in all four models. Athletes generally have higher calorie preferences and lower veg/meat preferences, while the graduate coefficients show the opposite pattern. Model (a) estimates more unobserved dispersion in veg/meat and wheat tastes than in spicy or calorie tastes. For model (d), the estimated covariance matrix, in the characteristic order above, is
+
+$$
+\widehat\Sigma_{(d)}=
+\begin{pmatrix}
+0.350530&0&0&0\\
+0&0.126523&0.235538&0.074069\\
+0&0.235538&0.438482&0.137889\\
+0&0.074069&0.137889&0.043382
+\end{pmatrix}.
+$$
+
+Its wheat--veg/meat correlation is approximately one, and the other two correlations are about $0.9998$. This covariance is numerically singular, so the individual correlations are not reliably identified even though the optimization converged.
+
+### 13. Welfare Effects of Gluten-Free Options
+
+We measure the compensating variation from introducing gluten free dishes by comparing the observed choice set $\mathcal J_{mt}$ with $\mathcal J_{mt}\setminus GF$, keeping the other prices and characteristics fixed. For student type $h$ and random taste draw $r$,
+
+$$
+\Delta CS_{rhmt}=
+\frac{1}{-\hat\alpha}\left[
+\log\left(1+\sum_{j\in\mathcal J_{mt}}e^{V_{jrhmt}}\right)-
+\log\left(1+\sum_{j\in\mathcal J_{mt}\setminus GF}e^{V_{jrhmt}}\right)
+\right].
+$$
+
+We average across taste draws, demographic weights, and campus years. Welfare is in units of the Price variable per lunch choice; markets receive equal weight because their student counts are unavailable.
+
+**Table III.3. Mean welfare gain from gluten free dishes**
+
+| Period     | \(a\) | \(b\) | \(c\) | \(d\) |
+|:-----------|------:|------:|------:|------:|
+| 2001--2010 |     0 |     0 |     0 |     0 |
+| 2011--2015 | 0.256 | 0.257 | 0.249 | 0.239 |
+| 2016--2020 | 0.705 | 0.708 | 0.685 | 0.666 |
+| 2011--2020 | 0.480 | 0.482 | 0.467 | 0.453 |
+
+**Table III.4. Welfare gain by student type time period 2011 – 2020**
+
+| Student type  | \(a\) | \(b\) | \(c\) | \(d\) |
+|:--------------|------:|------:|------:|------:|
+| Neither       | 0.480 | 0.525 | 0.536 | 0.523 |
+| Athlete only  | 0.480 | 0.607 | 0.480 | 0.434 |
+| Graduate only | 0.480 | 0.389 | 0.412 | 0.430 |
+| Both          | 0.480 | 0.414 | 0.411 | 0.395 |
+
+The welfare gain is zero before gluten free entry, and positive under every model after entry. Gains are larger in 2016--2020, when all three chains offered gluten-free dishes, though changes across periods also reflect other market changes. Model (a) implies no demographic differences. In (b) throuhg (d), the group specific gains vary more than aggregate welfare, suggesting that the distribution of benefits depend on how preferences are modeled. These are fixed price counterfactuals, not equilibrium welfare changes.
+
+### 14. Recommendation
+
+Models (a) and (c) estimate near zero standard deviations for some tastes, while the covariance in (d) is numerically singular. Thus, the flexible normal distribution in (d) appears difficult to identify with only aggregate shares. Finite consumer types, as in Berry, Carnall, and Spiller (1996), could capture distinct dietary preferences without imposing a smooth normal distribution. However the thing is, our results alone do not show that a finite type model fits better, as we have not estimated one. We would use the simpler diagonal normal model (c) as our main continuous heterogeneity specification and consider finite types as an alternative once there is more individual level information. The average welfare estimates are quite stable across the four models, but the group specific gains are less so.
