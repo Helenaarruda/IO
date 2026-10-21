@@ -6,6 +6,7 @@ from scipy.optimize import root
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import numpy as np
+import statsmodels.api as sm
 
 
 # ==============================================================================
@@ -428,3 +429,58 @@ plt.savefig(
     bbox_inches="tight"
 )
 
+# ==============================================================================
+# Part 1: Pricing Equations
+# ==============================================================================
+
+# Variables in the first pricing regression
+dependent = "Price"
+regressors = ["SpicyIndex", "WheatContent", "Veg2meat", "Calories"]
+
+# Keep only observations with non-missing values in the regression variables
+reg_data = choice_noodles[[dependent] + regressors].dropna().copy()
+
+# OLS: Price_jmt = beta_0 + beta_1*SpicyIndex + ... + u_jmt
+X = sm.add_constant(reg_data[regressors])
+y = reg_data[dependent]
+
+# HC1 heteroskedasticity-robust standard errors
+model = sm.OLS(y, X).fit(cov_type="HC1")
+
+# Create a clean coefficient table
+ci = model.conf_int()
+table = pd.DataFrame({
+    "Variable": model.params.index,
+    "Coefficient": model.params.values,
+    "Robust SE (HC1)": model.bse.values,
+    "t-statistic": model.tvalues.values,
+    "p-value": model.pvalues.values,
+    "CI 95% lower": ci[0].values,
+    "CI 95% upper": ci[1].values,
+})
+
+# Add regression summary statistics
+summary = pd.DataFrame({
+    "Statistic": ["Observations", "R-squared", "Adjusted R-squared"],
+    "Value": [int(model.nobs), model.rsquared, model.rsquared_adj],
+})
+
+# Save tables for use in the .qmd
+table.to_csv("pset_2/data/output/pricing_regression_1_coefficients.csv", index=False)
+
+# Save a LaTeX table that can be included in the write-up
+latex_table = table[["Variable", "Coefficient", "Robust SE (HC1)", "p-value"]].copy()
+latex_table["Coefficient"] = latex_table["Coefficient"].map(lambda x: f"{x:.4f}")
+latex_table["Robust SE (HC1)"] = latex_table["Robust SE (HC1)"].map(lambda x: f"{x:.4f}")
+latex_table["p-value"] = latex_table["p-value"].map(lambda x: f"{x:.4f}")
+latex = latex_table.to_latex(
+    index=False,
+    escape=True,
+    caption="Pricing Regression 1: Price on Product Characteristics",
+    label="tab:pricing-regression-1",
+    column_format="lrrr",
+)
+("pset_2/data/output/pricing_regression_1.tex").write_text(latex, encoding="utf-8")
+
+
+print(model.summary())
