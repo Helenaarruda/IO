@@ -77,6 +77,3 @@ Related to that, Figure 2 examines whether GF choices vary across student groups
 
 
 
-Figure 3 presents preliminary dish-specific log-log regression coefficients relating noodle market shares to own prices, input-price indices, and the availability of GF alternatives over 2010–2020. Own-price coefficients are negative for most dishes, indicating a negative conditional association between prices and market shares. The coefficients on input-price indices vary across dishes, suggesting that the relationships between local input costs and product shares are not uniform. The GF-options coefficients are also heterogeneous: they are negative for GF dishes and some traditional dishes, but positive for others. These estimates provide an exploratory description of how market shares co-vary with prices, costs, and GF availability. They should not be interpreted as causal effects or structural demand elasticities, since prices may be endogenous and the regressions do not fully account for all demand-side and market-level changes.
-
-![Estimating Elasticities](data/output/raw_elasticities.png){#fig-raw-elasticities width=90% fig-pos="H"}
