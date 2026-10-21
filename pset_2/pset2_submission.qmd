@@ -80,62 +80,80 @@ Related to that, Figure 2 examines whether GF choices vary across student groups
 
 ##### Pricing regressions
 
+Now we procede to show results of pricing regressions. Our main exercises refer to Regressions 1 and 4 (baseline versus adding cost and market shocks) but we also add intermediate results adding both sets of shocks individually to better assess their effect in the estimation.
+
+**Regression 1 — Baseline**
+
 $$
-Price_{jmt} = \beta_0 + \beta_1SpicyIndex_{jmt} + \beta_2WheatContent_{jmt}  + \\
-\beta_3Veg2meat_{jmt}  + \beta_4Calories_{jmt}  + u_{jmt} 
+Price_{jmt} = \beta_0 + X_{jmt}'\beta + u_{jmt}.
 $$
 
-Where $j$ identifies product (brand + dish), $m$ identifies campus and $t$ identifies the year. Table 1reports the OLS relationship between menu prices and product characteristics. Standard errors are heteroskedasticity robust (HC1). Since prices may be correlated with unobserved product characteristics, we interpret the coefficients as conditional associations rather than causal effects. Wheat content is positively and statistically significantly associated with price, whereas the coefficients on spiciness, vegetable-to-meat ratio, and calories are not statistically significant
+**Regression 2 — Market shocks**
 
+$$
+Price_{jmt} = \beta_0 + X_{jmt}'\beta + \gamma'C_{mt} + u_{jmt}.
+$$
+
+**Regression 3 — Input-cost shocks**
+
+$$
+Price_{jmt} = \beta_0 + X_{jmt}'\beta + \delta'Z_{jmt} + u_{jmt}.
+$$
+
+**Regression 4 — All cost shocks**
+
+$$
+Price_{jmt} = \beta_0 + X_{jmt}'\beta + \gamma'C_{mt} + \delta'Z_{jmt} + u_{jmt}.
+$$
+
+Here, $j$ identifies the product (brand and dish), $m$ the campus, and $t$ the
+year. The vectors enter the specifications, and appear in the regression table,
+in the following order:
+
+- $X_{jmt} = (\text{SpicyIndex}, \text{WheatContent}, \text{Veg2meat}, \text{Calories})'$ contains the observed product characteristics.
+- $C_{mt} = (\text{WageIDX}, \text{ReEsIDX})'$ contains market-level cost shifters: the local wage and real-estate indices.
+- $Z_{jmt} = (\text{wheat\_shock}, \text{vegetable\_shock}, \text{meat\_shock})'$ contains product-market-specific input-cost shocks, constructed from local input prices and the product's exposure to wheat, vegetables, and meat.
+
+The vectors $\beta$, $\gamma$, and $\delta$ are the corresponding coefficient
+vectors, and $u_{jmt}$ is the unobserved component of price. Standard errors
+are heteroskedasticity robust (HC1), so all estimates are interpreted as
+conditional associations rather than causal effects.
+
+
+Table 1 reports regression results. Column (1) shows the OLS relationship between menu prices and product characteristics. Since prices may be correlated with unobserved product characteristics, we interpret the coefficients as conditional associations rather than causal effects. Wheat content is positively and statistically significantly associated with price, whereas the coefficients on spiciness, vegetable-to-meat ratio, and calories are not statistically significant. Advancing to columns (2) and (3) regression results suggest that both market-level cost shifters and product-market-specific input-cost shocks contribute to explaining price variation. Adding wage and real-estate indices increases the R-squared from 0.055 to 0.163, while adding input-cost shocks alone raises it to 0.308. Both sets of shocks are jointly statistically significant at the 1% level. When included together, the R-squared reaches 0.404.
+These results suggest that product-market-specific input-cost shocks account for a larger share of the variation explained by the pricing regressions than market-level cost shifters alone. The increase in explanatory power when both sets are included also suggests that they provide complementary information about prices.
+
+ However, these results establish explanatory relevance in the pricing regressions, not instrument strength in the demand estimation or instrument exogeneity. The latter requires further assessment in the instrumental-variables estimation and an economic justification for the exclusion restrictions.
 
  
-Product characteristic | Coefficient | Robust SE | *p*-value | 95% confidence interval |
-|:--|--:|--:|--:|--:|
-| Constant | 0.651 | 0.158 | <0.001 | [0.342, 0.960] |
-| Spiciness index | -0.040 | 0.054 | 0.460 | [-0.147, 0.066] |
-| Wheat content | 0.662 | 0.061 | <0.001 | [0.541, 0.782] |
-| Vegetable-to-meat ratio | 0.077 | 0.096 | 0.423 | [-0.112, 0.266] |
-| Calories | 0.002 | 0.177 | 0.991 | [-0.346, 0.350] |
-: Pricing Regression 1: Price on Product Characteristics
-*Notes:* Dependent variable: price. Coefficients are from an OLS regression;
-robust standard errors use the HC1 correction. The 95% confidence intervals are
-computed from the robust standard errors.
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Pricing Regressions with Market and Input-Cost Shocks}
+\label{tab:pricing-regressions-comparison}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcccc}
+\hline
+Variable & (1) Baseline & (2) Market shocks & (3) Input-cost shocks & (4) All cost shocks \\
+\hline
+const & \begin{tabular}[c]{@{}c@{}}0.6768***\\(0.1894)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.2821\\(0.1894)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.7605***\\(0.1547)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.4085***\\(0.1504)\end{tabular} \\
+SpicyIndex & \begin{tabular}[c]{@{}c@{}}-0.0622\\(0.0630)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.0463\\(0.0608)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.0264\\(0.0519)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.0111\\(0.0496)\end{tabular} \\
+WheatContent & \begin{tabular}[c]{@{}c@{}}0.7055***\\(0.0699)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.7309***\\(0.0651)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.1676**\\(0.0696)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.1235*\\(0.0638)\end{tabular} \\
+Veg2meat & \begin{tabular}[c]{@{}c@{}}0.0755\\(0.1209)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.0492\\(0.1155)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.3255***\\(0.1218)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.3531***\\(0.1151)\end{tabular} \\
+Calories & \begin{tabular}[c]{@{}c@{}}-0.0225\\(0.2088)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.0038\\(0.2017)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.0838\\(0.1669)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.0546\\(0.1604)\end{tabular} \\
+WageIDX & --- & \begin{tabular}[c]{@{}c@{}}0.1753***\\(0.0200)\end{tabular} & --- & \begin{tabular}[c]{@{}c@{}}0.1688***\\(0.0199)\end{tabular} \\
+ReEsIDX & --- & \begin{tabular}[c]{@{}c@{}}0.0547***\\(0.0196)\end{tabular} & --- & \begin{tabular}[c]{@{}c@{}}0.0338**\\(0.0151)\end{tabular} \\
+wheat\_shock & --- & --- & \begin{tabular}[c]{@{}c@{}}0.6815***\\(0.0319)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.6658***\\(0.0293)\end{tabular} \\
+vegetable\_shock & --- & --- & \begin{tabular}[c]{@{}c@{}}0.2351***\\(0.0481)\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.2341***\\(0.0472)\end{tabular} \\
+meat\_shock & --- & --- & \begin{tabular}[c]{@{}c@{}}-0.0031\\(0.0019)\end{tabular} & \begin{tabular}[c]{@{}c@{}}-0.0035**\\(0.0017)\end{tabular} \\
+\hline
+Observations & 2150 & 2150 & 2150 & 2150 \\
+R-squared & 0.0550 & 0.1625 & 0.3082 & 0.4039 \\
+F-statistic (included shocks) & --- & 40.57 & 161.39 & 132.19 \\
+F-test p-value & --- & <0.001 & <0.001 & <0.001 \\
+\hline
+\end{tabular}
 
-The three specifications used in the comparison are:
-
-
-$$
-\begin{aligned}
-\text{(2)}\quad Price_{jmt} ={}& \beta_0 + \beta_1 SpicyIndex_{jmt}
-+ \beta_2 WheatContent_{jmt} + \beta_3 Veg2meat_{jmt}
-+ \beta_4 Calories_{jmt} \\
-&+ \beta_5 WageIDX_{mt} + \beta_6 ReEsIDX_{mt}
-+ \beta_7 wheat\_shock_{mt} + \beta_8 vegetable\_shock_{mt} \\
-&+ \beta_9 meat\_shock_{mt} + u_{jmt}.
-\end{aligned}
-$$
-
-
-Table @tbl-pricing-regressions-comparison reports the specification with market
-cost controls and input-cost shocks.
-
-| Variable | Coefficient | Robust SE | *p*-value | 95% confidence interval |
-|:--|--:|--:|--:|--:|
-| Constant | 0.4085 | 0.1504 | 0.007 | [0.1137, 0.7033] |
-| Spiciness index | -0.0111 | 0.0496 | 0.823 | [-0.1083, 0.0861] |
-| Wheat content | -0.1235 | 0.0638 | 0.053 | [-0.2485, 0.0015] |
-| Vegetable-to-meat ratio | -0.3531 | 0.1151 | 0.002 | [-0.5787, -0.1275] |
-| Calories | -0.0546 | 0.1604 | 0.734 | [-0.3690, 0.2598] |
-| Wage index | 0.1688 | 0.0199 | <0.001 | [0.1298, 0.2078] |
-| Real-estate index | 0.0338 | 0.0151 | 0.025 | [0.0042, 0.0634] |
-| Wheat-cost shock | 0.6658 | 0.0293 | <0.001 | [0.6084, 0.7232] |
-| Vegetable-cost shock | 0.2341 | 0.0472 | <0.001 | [0.1416, 0.3266] |
-| Meat-cost shock | -0.0035 | 0.0017 | 0.040 | [-0.0068, -0.0002] |
-| Observations | 2,150 |  |  |  |
-| R-squared | 0.4039 |  |  |  |
-
-: Pricing Regression: Market Costs and Input Shocks {#tbl-pricing-regressions-comparison}
-
-*Notes:* Dependent variable: price. Standard errors are heteroskedasticity
-robust (HC1); confidence intervals are computed from these standard errors.
-
+\vspace{0.3em}
+\parbox{0.95\textwidth}{\scriptsize \textit{Notes:} Dependent variable: price. Heteroskedasticity-robust standard errors are in parentheses. The F-test tests whether the shocks included in each specification are jointly equal to zero. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
+\end{table}
