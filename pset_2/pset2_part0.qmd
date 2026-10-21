@@ -1,0 +1,25 @@
+## Part 0: Empirical Target
+
+### Object of Interest
+
+Our main empirical objective is to \textbf{quantify the welfare gains associated with the availability of gluten-free noodle options on college campuses}. Specifically, we aim to estimate the change in student welfare relative to a counterfactual market in which none of the chains offers gluten-free options. In addition to estimating the average welfare gain across students, we aim to characterize how these gains vary across student groups, particularly athletes and graduate students.
+
+More precisely, our object of interest is the change in consumer surplus resulting from the introduction of gluten-free options, both on average and separately across groups defined by students' observable characteristics. This allows us to assess not only the overall benefits of expanding the available choice set, but also how these benefits are distributed across different types of students.
+
+### Demand Estimation and Consumer Preferences
+
+To quantify these welfare gains, we will estimate a discrete-choice demand model based on a random utility framework. Student utility will depend on product prices and observable characteristics, such as spiciness, wheat content, the vegetable-to-meat ratio, and calories, as well as unobserved product and consumer characteristics.
+
+We will begin with the logit specifications in Part II and then allow for heterogeneous preferences through random-coefficient models in Part III. These specifications will help us characterize how students trade off prices and product characteristics, as well as how preferences vary across students with different observable characteristics, particularly athletes and graduate students.
+
+### Price Variation and Product Substitution
+
+A key challenge is that observed prices may be endogenous if stores adjust prices in response to unobserved product attractiveness. We will therefore investigate whether local input-cost shocks provide suitable instruments for product prices. Specifically, variation in local prices of wheat, vegetables, and meat, combined with differences in product composition, may generate exogenous variation in production costs and help identify price sensitivity.
+
+We will also characterize substitution patterns across products. Observed market shares will inform the estimation of demand, while the hypothetical second-choice responses in the survey can provide additional information on substitution between alternatives. These data may improve our understanding of how students would reallocate their choices if gluten-free products were unavailable.
+
+### Counterfactual and Welfare Measurement
+
+Using the estimated demand model, we will simulate a counterfactual in which all gluten-free products are removed from the choice set, while the prices and characteristics of the remaining products are held constant. Holding the prices of the remaining products fixed is a simplifying assumption that isolates the direct welfare effect of expanding the available choice set and facilitates computation. It abstracts from potential equilibrium price adjustments following the introduction or removal of gluten-free products.
+
+We will measure welfare changes using the model-implied change in consumer surplus, accounting for the estimated price sensitivity and, where applicable, heterogeneity in preferences. Finally, we will examine heterogeneity in welfare gains across student groups, particularly athletes and graduate students. Comparing results across the logit and random-coefficient specifications will allow us to assess how assumptions about preference heterogeneity affect the estimated benefits of gluten-free options.
