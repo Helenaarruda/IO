@@ -1,3 +1,58 @@
 ## Part 2
 
-<!-- Add Part 2 work here. This file is included by pset2_submission.qmd. -->
+### 5.
+
+Dividing everything by $\sigma$,
+$$
+\frac{1}{\sigma}\,u_{ijmt} = -\frac{1}{\sigma}\,p_{jmt} + \frac{\mu_j}{\sigma} + \frac{\beta'}{\sigma} X_{jmt} + \frac{\xi_{jmt}}{\sigma} + \varepsilon_{ijmt}.
+$$
+If we define $\alpha = 1/\sigma$ and rescale the coefficients and utility, we get
+$$
+\widetilde{u}_{ijmt} = -\alpha\,p_{jmt} + \widetilde{\mu}_j + \widetilde{\beta} X_{jmt} + \widetilde{\xi}_{jmt} + \varepsilon_{ijmt}.
+$$
+From now on, this is the form we use, dropping the tildes to have everything rescaled.
+
+### 6.
+First, let $\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta_j X_{jmt} + \xi_{jmt}$. Choice probabilities are
+$$
+s_{jmt} = P\Big\{\delta_{jmt} + \varepsilon_{ijmt} \geq \delta_{\ell mt} + \varepsilon_{i\ell mt}\,\forall \ell\Big\} = \dfrac{e^{\delta_{jmt}}}{\sum_\ell e^{\delta_{\ell mt}}},
+$$
+by the properties of the Gumbel distribution. In the data, we see that the shares add up to less than one. We consider that those who are not consuming noodles are picking the outside option of good $0$, which has utility $\varepsilon_{i0mt}$, and mean utility $\delta_{0mt} = 0$. By the same logit formula, the outside option has market share $1/(\sum_\ell e^{\delta_{\ell m t}})$. Dividing one by the other,
+$$
+\frac{s_{jmt}}{s_{0mt}} = e^{\delta_{jmt}} \implies \log(s_{jmt}) - \log(s_{0mt}) = \delta_{jmt}.
+$$
+Using the definition of $\delta$, we get the linear regression
+$$
+\log(s_{jmt}) - \log(s_{0mt}) = -\alpha\,p_{jmt} + \mu_j + \beta X_{jmt} + \xi_{jmt}.
+$$
+Under the assumption that $\mathbb{E}\Big[\xi_{jmt}\mid p_{jmt}, X_{jmt}\Big]$, the parameters can be unbiasedly recovered using OLS. As each good has a different $\mu_j$, we include good fixed effects.
+
+```{=latex}
+\input{output/part2_table_ols.tex}
+```
+
+### 7.
+
+Now we assume that the characteristics are exogenous, but that prices can be exogenous. Using variables in $Z$ as instruments for price:
+
+```{=latex}
+\input{output/part2_table_iv.tex}
+```
+
+As we would expect prices to be positively correlated to positive demand shocks, the price coefficient in OLS should have an upward bias, being closer to zero. This is exactly what we see: the price coefficient becomes more negative with instruments.
+
+### 8.
+
+Consumer surplus for a given scenario, at a given university and time, takes the form
+$$
+\mathrm{CS} = \frac{1}{\alpha}\, \log\left(\sum_\ell e^{\delta_{\ell mt}}\right).
+$$
+We simulate a counterfactual where gluten-free options were never introduced. We assume that, in that world, prices and everything else would have remained constant. We create a function that takes in the data and a vector or parameters, and outputs the welfare of each university and time. For the counterfactual, we simply drop gluten-free alternatives.
+
+![Consumer welfare over time](output/welfare_over_time.pdf){width=95%}
+
+![Welfare gains over time](output/welfare_gain_over_time.pdf){width=95%}
+
+```{=latex}
+\input{output/welfare_gain_by_period.tex}
+```
