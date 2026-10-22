@@ -1,26 +1,29 @@
 ## Part 1: Empirical Evidence, Early Exhibits
 
-#### Data Patterns
+#### Descriptive Exhibits
+
+Figure 1 Panel A documents the evolution of noodle market shares between 2001 and 2020. Traditional
+noodles account for all of the noodle market before the introduction of gluten-free (GF) options
+in 2011. Following their introduction, GF noodles gain market share, with a further increase around
+2016, when additional chains begin offering GF alternatives. Over the same period, the market
+share of traditional noodles declines. These patterns are consistent with a change in the composition
+of noodle demand as GF alternatives become available, although the figure alone cannot establish
+that their introduction caused the decline in traditional noodle shares. Panel B reproduces the same analysis by noodle chain. Since YourNoodles was the first to introduce GF options we observe its market share rising in 2011, but after all brands introduce it in 2016 it actually declines and others go up, suggesting BestNoodles and AllNoodles might have more attracting options at this point.
 
 
-Figure 1 documents the evolution of noodle market shares between 2001 and 2020. Traditional noodles account for the majority of the market before the introduction of gluten-free (GF) options in 2011. Following their introduction, GF noodles gain market share, with a further increase around 2016, when additional chains begin offering GF alternatives. Over the same period, the market share of traditional noodles declines. These patterns are consistent with a change in the composition of noodle demand as GF alternatives become available, although the figure alone cannot establish that their introduction caused the decline in traditional noodle shares.
+Related to that, Figure 2 examines whether GF choices vary across student groups over time.
+The share of GF choices increases for both athletes and non-athletes, as well as for graduate
+students and undergraduates since the first introduction of a GF option in 2011, particularly after 2015. Non-athletes seem to consistently consume more GF options, while for Graduate vs non Graduate-students this relationship varies depending on the year. The overall patterns suggest potential heterogeneity in adoption patterns. 
+However, these comparisons are
+descriptive and may also reflect changes in the composition of the surveyed students and campuses
+over time.
 
-Related to that, Figure 2 examines whether GF choices vary across student groups over time. The share of GF choices increases for both athletes and non-athletes, as well as for graduate students and undergraduates, particularly after 2015. The differences between groups vary across years, suggesting potential heterogeneity in adoption patterns. However, these comparisons are descriptive and may also reflect changes in the composition of the surveyed students and campuses over time.
+![Market shares by product category and noodle chain](data/output/market_shares_overview.png){#fig-market-shares-overview width=90% fig-pos="H"}
 
-
-
-
-![Market shares evolution](data/output/evolution_shares.png){#fig-market-shares-evolution width=70% fig-pos="H"}
-
-
-![Choices by student](data/output/choices_bystudent.png){#fig-choices-by-student width=80% fig-pos="H"}
-
+![Observed gluten-free choice by athlete and graduate status](data/output/gf_choice_by_student_status.png){#fig-gf-choice-student-status width=90% fig-pos="H"}
 
 
-
-
-
-##### Pricing regressions
+#### Pricing regressions
 
 Now we procede to show results of pricing regressions. Our main exercises refer to Regressions 1 and 4 (baseline versus adding cost and market shocks) but we also add intermediate results adding both sets of shocks individually to better assess their effect in the estimation.
 
@@ -99,3 +102,29 @@ F-test p-value & --- & <0.001 & <0.001 & <0.001 \\
 \vspace{0.3em}
 \parbox{0.95\textwidth}{\scriptsize \textit{Notes:} Dependent variable: price. Heteroskedasticity-robust standard errors are in parentheses. The F-test tests whether the shocks included in each specification are jointly equal to zero. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
+
+
+#### Reduced-Form Estimations
+
+For our reduced form exhibits we begin wit @fig-event-study which reports the event-study estimates around the
+introduction of gluten-free options. The following figures then describe market
+shares overall and heterogeneity in observed gluten-free choices.
+
+The event-study estimates show no statistically significant joint evidence of pre-adoption differences relative to the reference period (F = 1.255, p = 0.324). In contrast, the post-adoption coefficients are jointly statistically significant (F = 10.860, p < 0.001), indicating changes in chain-level market shares following gluten-free introductions. These results are suggestive of a relationship between product introduction and market outcomes, but they do not establish a causal effect given the small number of adopting chains and potential spillovers across competitors.
+
+![Event study: noodle market share around gluten-free introduction](data/output/event_study_plot.png){#fig-event-study width=82% fig-pos="H"}
+
+
+On another exhibit, Table 2 documents substitution patterns across chains and product categories. Among respondents whose observed choice was gluten-free, the share reporting a traditional noodle dish as their hypothetical second choice ranges from 54.7% for AllNoodles to 80.8% for YourNoodles. Conversely, among respondents whose observed choice was traditional, 24.5%–31.8% report a gluten-free dish as their second choice, depending on the chain. These patterns suggest that gluten-free and traditional noodles can be substitutes, but the extent of substitution varies across chains. They also indicate that product category alone does not fully characterize consumers' second-choice patterns. Since these are stated hypothetical choices, they should not be interpreted as actual switching behavior or as direct estimates of substitution following the removal of all gluten-free products.
+
+| Observed choice | Second choice: GF | Second choice: Traditional | N |
+|:--|--:|--:|--:|
+| AllNoodles -- GF | 45.3% | 54.7% | 752 |
+| AllNoodles -- Traditional | 31.8% | 68.2% | 2,382 |
+| BestNoodles -- GF | 39.4% | 60.6% | 836 |
+| BestNoodles -- Traditional | 27.3% | 72.7% | 2,750 |
+| YourNoodles -- GF | 19.2% | 80.8% | 1,527 |
+| YourNoodles -- Traditional | 24.5% | 75.5% | 1,784 |
+
+: Second-Choice Summary by Chain {#tbl-second-choice-summary}
+
