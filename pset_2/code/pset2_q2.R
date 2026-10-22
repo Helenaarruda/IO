@@ -4,6 +4,9 @@ library(modelsummary)
 library(readxl)
 library(dplyr)
 library(ggplot2)
+library(tidyr)
+
+dir.create("output", showWarnings = FALSE, recursive = TRUE)
 
 dat <- readr::read_csv("data/input/choice_noodles.csv")
 
@@ -15,70 +18,157 @@ dat <- dat |>
     .by = c(University, year)
   )
 
-### OLS
 
-reg <- feols(
-  log(Share) - log(Share0) ~ Price + SpicyIndex + WheatContent + Veg2meat + Calories | dish,
+# ============================================================
+# OLS
+# ============================================================
+
+reg <- fixest::feols(
+  log(Share) - log(Share0) ~
+    Price + SpicyIndex + WheatContent + Veg2meat + Calories |
+    dish,
   data = dat
 )
 
-modelsummary(
-  reg,
-  coef_map = c(
-    "Price"        = "Price",
-    "SpicyIndex"   = "Spicy",
-    "WheatContent" = "Wheat",
-    "Veg2meat"     = "Veg2Meat",
-    "Calories"     = "Calories"
-  ),
-  estimate = "{estimate}{stars}",
-  statistic = "({std.error})",
-  stars = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
-  gof_map = c("nobs", "r.squared", "r.squared.within"),
-  title = "OLS",
-  output = "output/part2_table_ols.tex"
-)
 
-### IV
+# ============================================================
+# IV
+# ============================================================
 
 college_year <- readxl::read_xls("data/input/college-year.xls") |>
-  mutate(across(year, as.numeric))
+  dplyr::mutate(
+    dplyr::across(year, as.numeric)
+  )
+
+# some data cleaning has to be done
+
+college_year <- college_year |>
+  dplyr::mutate(
+    campus = dplyr::case_match(
+      campus,
+      "St Johns" ~ "Saint John",
+      "Texas-A&M" ~ "Texas A&M",
+      "R-H" ~ "Rose-Hul.",
+      "U. Chicago" ~ "Univ. Chicago",
+      .default = campus
+    )
+  )
 
 # merging the datasets
 
 dat <- dat |>
-  left_join(college_year, by = c("University" = "campus", "year"))
+  dplyr::left_join(
+    college_year,
+    by = c("University" = "campus", "year")
+  )
 
-reg_iv <- feols(
-  log(Share) - log(Share0) ~ SpicyIndex + WheatContent + Veg2meat + Calories |
+# Original IV specification: instrument Price using the existing indices
+
+reg_iv_original <- fixest::feols(
+  log(Share) - log(Share0) ~
+    SpicyIndex + WheatContent + Veg2meat + Calories |
     dish |
     Price ~ VegPIDX + WheatPIDX + MeatPIDX + WageIDX + ReEsIDX,
   data = dat
 )
 
-# Save the regression table as LaTeX
-modelsummary(
-  reg_iv,
-  coef_map = c(
-    "fit_Price"        = "Price",
-    "SpicyIndex"   = "Spicy",
-    "WheatContent" = "Wheat",
-    "Veg2meat"     = "Veg2Meat",
-    "Calories"     = "Calories"
-  ),
-  estimate = "{estimate}{stars}",
-  statistic = "({std.error})",
-  stars = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
-  gof_map = c("nobs", "r.squared", "r.squared.within"),
-  title = "IV",
-  output = "output/part2_table_iv.tex"
+# Construct three additional product-characteristic × input-price instruments.
+#
+# Wheat: WheatContent × WheatPIDX
+# Meat:  Veg2meat × MeatPIDX
+# Veg:   Veg2meat × VegPIDX
+#
+# The supplied script has Veg2meat rather than separate MeatContent
+# and VegContent variables, so it is used for the meat and veg interactions.
+
+dat <- dat |>
+  dplyr::mutate(
+    IV_wheat = WheatContent * WheatPIDX,
+    IV_meat = Veg2meat * MeatPIDX,
+    IV_veg = Veg2meat * VegPIDX
+  )
+
+# Fuller IV specification: add the three interaction instruments
+# to the original set of price instruments.
+
+reg_iv_full <- fixest::feols(
+  log(Share) - log(Share0) ~
+    SpicyIndex + WheatContent + Veg2meat + Calories |
+    dish |
+    Price ~
+      VegPIDX + WheatPIDX + MeatPIDX + WageIDX + ReEsIDX +
+      IV_wheat + IV_meat + IV_veg,
+  data = dat
 )
 
-### Welfare
+# The fuller specification is the preferred IV model for all
+# subsequent welfare and elasticity calculations.
+
+reg_iv <- reg_iv_full
+
+
+# ============================================================
+# Combined regression table
+# ============================================================
+
+fixest::etable(
+  reg,
+  reg_iv_original,
+  reg_iv_full,
+
+  # Group the first column under OLS and the other two under IV
+  headers = list(
+    "^" = list(
+      "OLS" = 1,
+      "IV" = 2
+    )
+  ),
+
+  # Coefficient labels
+  dict = c(
+    "Price" = "Price",
+    "fit_Price" = "Price",
+    "SpicyIndex" = "Spicy",
+    "WheatContent" = "Wheat",
+    "Veg2meat" = "Veg2Meat",
+    "Calories" = "Calories"
+  ),
+
+  # Specification indicators
+  extralines = list(
+    "Cost-shifter IVs" = c("No", "Yes", "Yes"),
+    "Interaction IVs" = c("No", "No", "Yes")
+  ),
+
+  # Professional table formatting
+  caption = "Demand Estimates",
+  label = "tab:demand",
+  tex = TRUE,
+  file = "output/part2_table.tex",
+  replace = TRUE,
+  create_dirs = TRUE,
+  digits = 3,
+  se.below = TRUE,
+  depvar = FALSE,
+  fitstat = ~ n + r2 + wr2,
+  signif.code = c(
+    "***" = 0.01,
+    "**" = 0.05,
+    "*" = 0.10
+  ),
+  placement = "H"
+)
+
+
+# ============================================================
+# Welfare
+# ============================================================
 
 logit_welfare <- function(dat, reg) {
   dat |>
-    dplyr::mutate(delta = predict(reg, newdata = dat)) |>
+    dplyr::mutate(
+      delta = predict(reg, newdata = dat)
+    ) |>
     dplyr::summarise(
       welfare = log1p(sum(exp(delta))) / -coef(reg)[1],
       .by = c(University, year)
@@ -86,45 +176,59 @@ logit_welfare <- function(dat, reg) {
 }
 
 # function that computes differences in welfare with and without choices
+
 welfare_gain <- function(dat, reg) {
   gluten <- dat |>
     logit_welfare(reg)
 
   gluten_free <- dat |>
-    filter(WheatContent != 0) |>
+    dplyr::filter(WheatContent != 0) |>
     logit_welfare(reg) |>
-    rename(welfare_gf = welfare)
+    dplyr::rename(welfare_gf = welfare)
 
   # merging the two and taking diffs
-  left_join(gluten, gluten_free, by = c("University", "year")) |>
-    mutate(welfare_gain = welfare - welfare_gf)
+  dplyr::left_join(
+    gluten,
+    gluten_free,
+    by = c("University", "year")
+  ) |>
+    dplyr::mutate(
+      welfare_gain = welfare - welfare_gf
+    )
 }
 
-# stacking welfare gains for both estimates
+# stacking welfare gains for OLS and the preferred IV estimate
+
 welfare <- purrr::map2(
   list(reg, reg_iv),
   c("OLS", "IV"),
   function(model, name) {
     welfare_gain(dat, model) |>
-      mutate(estimator = name)
+      dplyr::mutate(estimator = name)
   }
 ) |>
-  bind_rows()
+  dplyr::bind_rows()
 
+
+# ============================================================
 # Diff-in-diff style graph
+# ============================================================
 
 dat_plot <- welfare |>
-  summarise(
-    across(c(welfare, welfare_gf), \(x) mean(x, na.rm = TRUE)),
+  dplyr::summarise(
+    dplyr::across(
+      c(welfare, welfare_gf),
+      \(x) mean(x, na.rm = TRUE)
+    ),
     .by = c(year, estimator)
   ) |>
-  pivot_longer(
+  tidyr::pivot_longer(
     cols = c(welfare, welfare_gf),
     names_to = "measure",
     values_to = "welfare"
   ) |>
-  mutate(
-    measure = recode(
+  dplyr::mutate(
+    measure = dplyr::recode(
       measure,
       welfare = "Baseline",
       welfare_gf = "GF"
@@ -136,14 +240,16 @@ label_data <- dat_plot |>
   dplyr::filter(year == max(year)) |>
   dplyr::ungroup() |>
   dplyr::mutate(
-    label = ifelse(measure == "GF",
-                   paste0(estimator, " (GF)"),
-                   estimator)
+    label = ifelse(
+      measure == "GF",
+      paste0(estimator, " (GF)"),
+      estimator
+    )
   )
 
-ggplot(
+ggplot2::ggplot(
   dat_plot,
-  aes(
+  ggplot2::aes(
     x = year,
     y = welfare,
     color = estimator,
@@ -151,159 +257,205 @@ ggplot(
     group = interaction(estimator, measure)
   )
 ) +
-  geom_line(linewidth = 1.1) +
-  geom_point(size = 1.5) +
-  geom_text(
+  ggplot2::geom_line(linewidth = 1.1) +
+  ggplot2::geom_point(size = 1.5) +
+  ggplot2::geom_text(
     data = label_data,
-    aes(label = label),
+    ggplot2::aes(label = label),
     hjust = 0,
     nudge_x = 1.5,
     size = 3.5,
     show.legend = FALSE
   ) +
-  scale_color_manual(
+  ggplot2::scale_color_manual(
     values = c("OLS" = "#4477AA", "IV" = "#CC6677")
   ) +
-  scale_linetype_manual(
+  ggplot2::scale_linetype_manual(
     values = c("Baseline" = "solid", "GF" = "longdash")
   ) +
-  scale_x_continuous(
+  ggplot2::scale_x_continuous(
     limits = c(min(dat_plot$year), max(dat_plot$year) + 4),
     breaks = scales::pretty_breaks(n = 8)
   ) +
-  labs(
+  ggplot2::labs(
     title = "Consumer Surplus Over Time",
     x = NULL,
     y = "Welfare per consumer"
   ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 15),
-    panel.grid.minor = element_blank(),
-    panel.grid.major.x = element_blank(),
-    axis.text = element_text(color = "grey25"),
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 15),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(color = "grey25"),
     legend.position = "none",
-    plot.margin = margin(5.5, 35, 5.5, 5.5)
+    plot.margin = ggplot2::margin(5.5, 35, 5.5, 5.5)
   )
 
-ggsave(
+ggplot2::ggsave(
   "output/welfare_over_time.pdf",
   width = 9,
   height = 5,
   units = "in"
 )
 
+
+# ============================================================
 # Graph of differences
+# ============================================================
 
 dat_plot <- welfare |>
-  summarise(
+  dplyr::summarise(
     welfare_gain = mean(welfare_gain, na.rm = TRUE),
     .by = c(year, estimator)
   )
 
 gain_labels <- dat_plot |>
-  filter(year == max(dat_plot$year)) |>
-  mutate(label = estimator)
+  dplyr::filter(year == max(dat_plot$year)) |>
+  dplyr::mutate(label = estimator)
 
-# Plot
-ggplot(
+ggplot2::ggplot(
   dat_plot,
-  aes(x = year, y = welfare_gain, color = estimator, group = estimator)
+  ggplot2::aes(
+    x = year,
+    y = welfare_gain,
+    color = estimator,
+    group = estimator
+  )
 ) +
-  geom_hline(
+  ggplot2::geom_hline(
     yintercept = 0,
     color = "grey75",
     linewidth = 0.5
   ) +
-  geom_line(linewidth = 1.1) +
-  geom_point(size = 1.6) +
-  geom_text(
+  ggplot2::geom_line(linewidth = 1.1) +
+  ggplot2::geom_point(size = 1.6) +
+  ggplot2::geom_text(
     data = gain_labels,
-    aes(label = label),
+    ggplot2::aes(label = label),
     nudge_x = 1.2,
     hjust = 0,
     size = 3.8,
     fontface = "bold",
     show.legend = FALSE
   ) +
-  scale_color_manual(
+  ggplot2::scale_color_manual(
     values = c("OLS" = "#4477AA", "IV" = "#CC6677")
   ) +
-  scale_x_continuous(
+  ggplot2::scale_x_continuous(
     limits = c(min(dat_plot$year), max(dat_plot$year) + 3),
     breaks = scales::pretty_breaks(n = 8),
-    expand = expansion(mult = c(0.01, 0))
+    expand = ggplot2::expansion(mult = c(0.01, 0))
   ) +
-  labs(
+  ggplot2::labs(
     title = "Welfare Gains vs. Counterfactual Over Time",
     x = NULL,
     y = "Welfare gain per consumer"
   ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 15),
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 15),
     plot.title.position = "plot",
-    panel.grid.minor = element_blank(),
-    panel.grid.major.x = element_blank(),
-    axis.text = element_text(color = "grey25"),
-    axis.title.y = element_text(margin = margin(r = 10)),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(color = "grey25"),
+    axis.title.y = ggplot2::element_text(
+      margin = ggplot2::margin(r = 10)
+    ),
     legend.position = "none",
-    plot.margin = margin(8, 30, 8, 8)
+    plot.margin = ggplot2::margin(8, 30, 8, 8)
   )
 
-ggsave(
+ggplot2::ggsave(
   "output/welfare_gain_over_time.pdf",
   width = 9,
   height = 5,
   units = "in"
 )
 
-### Regressing welfare gains
+
+# ============================================================
+# Regressing welfare gains
+# ============================================================
 
 welfare <- welfare |>
-  left_join(college_year, by = c("University" = "campus", "year"))
+  dplyr::left_join(
+    college_year,
+    by = c("University" = "campus", "year")
+  )
 
 # Before 2011
-reg_ols_pre <- lm(
+
+reg_ols_pre <- stats::lm(
   welfare_gain ~ Share_athletes + Share_Graduates,
-  data = filter(welfare, estimator == "OLS", year < 2011)
+  data = dplyr::filter(
+    welfare,
+    estimator == "OLS",
+    year < 2011
+  )
 )
 
-reg_iv_pre <- lm(
+reg_iv_pre <- stats::lm(
   welfare_gain ~ Share_athletes + Share_Graduates,
-  data = filter(welfare, estimator == "IV", year < 2011)
+  data = dplyr::filter(
+    welfare,
+    estimator == "IV",
+    year < 2011
+  )
 )
 
-# 2011–2014
-reg_ols_mid <- lm(
+# 2011–2015
+
+reg_ols_mid <- stats::lm(
   welfare_gain ~ Share_athletes + Share_Graduates,
-  data = filter(welfare, estimator == "OLS", year >= 2011, year <= 2015)
+  data = dplyr::filter(
+    welfare,
+    estimator == "OLS",
+    year >= 2011,
+    year <= 2015
+  )
 )
 
-reg_iv_mid <- lm(
+reg_iv_mid <- stats::lm(
   welfare_gain ~ Share_athletes + Share_Graduates,
-  data = filter(welfare, estimator == "IV", year >= 2011, year <= 2015)
+  data = dplyr::filter(
+    welfare,
+    estimator == "IV",
+    year >= 2011,
+    year <= 2015
+  )
 )
 
-# 2015 onward
-reg_ols_post <- lm(
+# 2016 onward
+
+reg_ols_post <- stats::lm(
   welfare_gain ~ Share_athletes + Share_Graduates,
-  data = filter(welfare, estimator == "OLS", year >= 2016)
+  data = dplyr::filter(
+    welfare,
+    estimator == "OLS",
+    year >= 2016
+  )
 )
 
-reg_iv_post <- lm(
+reg_iv_post <- stats::lm(
   welfare_gain ~ Share_athletes + Share_Graduates,
-  data = filter(welfare, estimator == "IV", year >= 2016)
+  data = dplyr::filter(
+    welfare,
+    estimator == "IV",
+    year >= 2016
+  )
 )
 
-modelsummary(
+options(tinytable_latex_placement = "H")
+
+modelsummary::modelsummary(
   list(
     "\\textbf{Panel A: OLS}" = list(
-      "2011--2015"  = reg_ols_mid,
+      "2011--2015" = reg_ols_mid,
       "2016 onward" = reg_ols_post
     ),
     "\\textbf{Panel B: IV}" = list(
-      "2011--2015"  = reg_iv_mid,
+      "2011--2015" = reg_iv_mid,
       "2016 onward" = reg_iv_post
     )
   ),
@@ -318,13 +470,17 @@ modelsummary(
   stars = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
   gof_omit = ".*",
   title = "Welfare Gains and Student Composition",
-  notes = "Standard errors in parentheses. * p < 0.10, ** p < 0.05, *** p < 0.01.",
+  notes = paste(
+    "Standard errors in parentheses.",
+    "* p < 0.10, ** p < 0.05, *** p < 0.01."
+  ),
   output = "output/welfare_gain_by_period.tex"
 )
 
-# ------------------------------------------------------------
+
+# ============================================================
 # 1. Calculate the dish-level elasticity matrix
-# ------------------------------------------------------------
+# ============================================================
 
 elasticity_matrix <- function(alpha, dat) {
 
@@ -337,20 +493,23 @@ elasticity_matrix <- function(alpha, dat) {
 
   dish_j <- dish_market |>
     dplyr::transmute(
-      University, year,
+      University,
+      year,
       dish_j = as.character(dish),
       share_j = share_dish
     )
 
   dish_k <- dish_market |>
     dplyr::transmute(
-      University, year,
+      University,
+      year,
       dish_k = as.character(dish),
       price_share_k = price_share
     )
 
   dplyr::inner_join(
-    dish_j, dish_k,
+    dish_j,
+    dish_k,
     by = c("University", "year"),
     relationship = "many-to-many"
   ) |>
@@ -368,28 +527,28 @@ elasticity_matrix <- function(alpha, dat) {
 }
 
 
-# ------------------------------------------------------------
-# 2. OLS and IV price sensitivities
-# ------------------------------------------------------------
+# ============================================================
+# 2. OLS and preferred IV price sensitivities
+# ============================================================
 
 alpha_ols <- -unname(stats::coef(reg)[1])
-alpha_iv  <- -unname(stats::coef(reg_iv)[1])
+alpha_iv <- -unname(stats::coef(reg_iv)[1])
 
 
-# ------------------------------------------------------------
+# ============================================================
 # 3. Define the three time periods
-# ------------------------------------------------------------
+# ============================================================
 
 periods <- list(
   "Before 2011" = dplyr::filter(dat, year < 2011),
-  "2011–2015"   = dplyr::filter(dat, year >= 2011, year <= 2015),
-  "2016 onward"       = dplyr::filter(dat, year >= 2016)
+  "2011–2015" = dplyr::filter(dat, year >= 2011, year <= 2015),
+  "2016 onward" = dplyr::filter(dat, year >= 2016)
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # 4. Calculate all six elasticity matrices
-# ------------------------------------------------------------
+# ============================================================
 
 elast_all <- lapply(names(periods), function(period_name) {
 
@@ -408,9 +567,9 @@ elast_all <- lapply(names(periods), function(period_name) {
   dplyr::bind_rows()
 
 
-# ------------------------------------------------------------
+# ============================================================
 # 5. Prepare labels and a common color scale
-# ------------------------------------------------------------
+# ============================================================
 
 dish_order <- sort(unique(as.character(dat$dish)))
 dish_count <- length(dish_order)
@@ -448,17 +607,24 @@ label_size <- if (dish_count <= 8) {
 }
 
 
-# ------------------------------------------------------------
+# ============================================================
 # 6. Create a polished two-panel figure for each period
-# ------------------------------------------------------------
+# ============================================================
 
 make_elasticity_plot <- function(period_name) {
 
-  plot_data <- dplyr::filter(elast_all, period == period_name)
+  plot_data <- dplyr::filter(
+    elast_all,
+    period == period_name
+  )
 
   ggplot2::ggplot(
     plot_data,
-    ggplot2::aes(x = dish_k, y = dish_j, fill = elasticity)
+    ggplot2::aes(
+      x = dish_k,
+      y = dish_j,
+      fill = elasticity
+    )
   ) +
     ggplot2::geom_tile(
       color = "white",
@@ -467,7 +633,10 @@ make_elasticity_plot <- function(period_name) {
 
     # Numeric labels only where the rounded elasticity is nonzero
     ggplot2::geom_text(
-      ggplot2::aes(label = label, color = label_color),
+      ggplot2::aes(
+        label = label,
+        color = label_color
+      ),
       size = label_size,
       show.legend = FALSE
     ) +
@@ -518,23 +687,30 @@ make_elasticity_plot <- function(period_name) {
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(
-        face = "bold", size = 15
+        face = "bold",
+        size = 15
       ),
       plot.title.position = "plot",
       plot.subtitle = ggplot2::element_text(color = "grey40"),
       plot.caption = ggplot2::element_text(
-        color = "grey40", size = 8.5, hjust = 0
+        color = "grey40",
+        size = 8.5,
+        hjust = 0
       ),
       strip.text = ggplot2::element_text(
-        face = "bold", size = 12
+        face = "bold",
+        size = 12
       ),
       strip.background = ggplot2::element_rect(
-        fill = "#EEF1F3", color = NA
+        fill = "#EEF1F3",
+        color = NA
       ),
       panel.grid = ggplot2::element_blank(),
       panel.spacing = grid::unit(1.2, "lines"),
       axis.text.x = ggplot2::element_text(
-        angle = 45, hjust = 1, size = 8
+        angle = 45,
+        hjust = 1,
+        size = 8
       ),
       axis.text.y = ggplot2::element_text(size = 8),
       axis.title = ggplot2::element_text(face = "bold"),
@@ -546,28 +722,28 @@ make_elasticity_plot <- function(period_name) {
 }
 
 
-# ------------------------------------------------------------
+# ============================================================
 # 7. Generate and save the three figures
-# ------------------------------------------------------------
+# ============================================================
 
 plots <- lapply(names(periods), make_elasticity_plot)
 names(plots) <- names(periods)
 
-dir.create("output", showWarnings = FALSE, recursive = TRUE)
-
 file_stems <- c(
   "Before 2011" = "before_2011",
-  "2011–2015"   = "2011_2015",
-  "2016 onward"       = "2016_plus"
+  "2011–2015" = "2011_2015",
+  "2016 onward" = "2016_plus"
 )
 
-fig_width  <- max(12, 0.55 * dish_count + 4)
+fig_width <- max(12, 0.55 * dish_count + 4)
 fig_height <- max(6.5, 0.45 * dish_count + 2.5)
 
 for (period_name in names(plots)) {
   ggplot2::ggsave(
     filename = paste0(
-      "output/elasticity_", file_stems[[period_name]], ".pdf"
+      "output/elasticity_",
+      file_stems[[period_name]],
+      ".pdf"
     ),
     plot = plots[[period_name]],
     width = fig_width,

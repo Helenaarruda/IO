@@ -89,18 +89,78 @@ window.Quarto = {
 <p>Dividing everything by <span class="math inline">\(\sigma\)</span>, <span class="math display">\[
 \frac{1}{\sigma}\,u_{ijmt} = -\frac{1}{\sigma}\,p_{jmt} + \frac{\mu_j}{\sigma} + \frac{\beta'}{\sigma} X_{jmt} + \frac{\xi_{jmt}}{\sigma} + \varepsilon_{ijmt}.
 \]</span> If we define <span class="math inline">\(\alpha = 1/\sigma\)</span> and rescale the coefficients and utility, we get <span class="math display">\[
-\widetilde{u}_{ijmt} = -\alpha\,p_{jmt} + \widetilde{\mu}_j + \widetilde{\beta} X_{jmt} + \widetilde{\xi}_{jmt} + \varepsilon_{ijmt}.
+\widetilde{u}_{ijmt} = -\alpha\,p_{jmt} + \widetilde{\mu}_j + \widetilde{\beta}' X_{jmt} + \widetilde{\xi}_{jmt} + \varepsilon_{ijmt}.
 \]</span> From now on, this is the form we use, dropping the tildes to have everything rescaled.</p>
 </section>
 <section id="section-1" class="level3">
 <h3 class="anchored" data-anchor-id="section-1">6.</h3>
-<p>First, let <span class="math inline">\(\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta_j X_{jmt} + \xi_{jmt}\)</span>. Choice probabilities are <span class="math display">\[
+<p>First, let <span class="math inline">\(\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}\)</span>. Choice probabilities are <span class="math display">\[
 s_{jmt} = P\Big\{\delta_{jmt} + \varepsilon_{ijmt} \geq \delta_{\ell mt} + \varepsilon_{i\ell mt}\,\forall \ell\Big\} = \dfrac{e^{\delta_{jmt}}}{\sum_\ell e^{\delta_{\ell mt}}},
 \]</span> by the properties of the Gumbel distribution. In the data, we see that the shares add up to less than one. We consider that those who are not consuming noodles are picking the outside option of good <span class="math inline">\(0\)</span>, which has utility <span class="math inline">\(\varepsilon_{i0mt}\)</span>, and mean utility <span class="math inline">\(\delta_{0mt} = 0\)</span>. By the same logit formula, the outside option has market share <span class="math inline">\(1/(\sum_\ell e^{\delta_{\ell m t}})\)</span>. Dividing one by the other, <span class="math display">\[
 \frac{s_{jmt}}{s_{0mt}} = e^{\delta_{jmt}} \implies \log(s_{jmt}) - \log(s_{0mt}) = \delta_{jmt}.
 \]</span> Using the definition of <span class="math inline">\(\delta\)</span>, we get the linear regression <span class="math display">\[
-\log(s_{jmt}) - \log(s_{0mt}) = -\alpha\,p_{jmt} + \mu_j + \beta X_{jmt} + \xi_{jmt}.
-\]</span> Under the assumption that <span class="math inline">\(\mathbb{E}\Big[\xi_{jmt}\mid p_{jmt}, X_{jmt}\Big]\)</span>, the parameters can be unbiasedly recovered using OLS. As each good has a different <span class="math inline">\(\mu_j\)</span>, we include good fixed effects.</p>
+\log(s_{jmt}) - \log(s_{0mt}) = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}.
+\]</span> Under the assumption that <span class="math inline">\(\mathbb{E}\Big[\xi_{jmt}\mid p_{jmt}, X_{jmt}\Big]\)</span>, the parameters can be unbiasedly recovered using OLS. As each good has a different <span class="math inline">\(\mu_j\)</span>, we include good fixed effects. Estimates are in the first column of the table below.</p>
+</section>
+<section id="section-2" class="level3">
+<h3 class="anchored" data-anchor-id="section-2">7.</h3>
+<p>Now we assume that the characteristics are exogenous, but that prices can be exogenous. We had to do some data cleaning to get all the university names to match in both datasets. We use the variables in <span class="math inline">\(Z\)</span> as instruments for price. To obtain more variation, we also add interactions between <span class="math inline">\(Z\)</span> and how important it is for a good (for example, Wheat Content <span class="math inline">\(\times\)</span> Wheat Costs). This is so that we also have variation across universities, and not only over time. Results are in the same table as before.</p>
+<p>As we would expect prices to be positively correlated to positive demand shocks, the price coefficient in OLS should have an upward bias, being closer to zero. This is exactly what we see: the price coefficient becomes more negative with instruments.</p>
+</section>
+<section id="section-3" class="level3">
+<h3 class="anchored" data-anchor-id="section-3">8.</h3>
+<p>Consumer surplus for a given scenario, at a given university and time, takes the form <span class="math display">\[
+\mathrm{CS} = \frac{1}{\alpha}\, \log\left(\sum_\ell e^{\delta_{\ell mt}}\right).
+\]</span> These can be easily computed by plugging in the <span class="math inline">\(\widehat\delta\)</span>’s, which are the predicted values from the regressions. We simulate a counterfactual where gluten-free options were never introduced. We assume that, in that world, prices and everything else would have remained constant. We create a function that takes in the data and a vector or parameters, and outputs the welfare of each university and time. For the counterfactual, we simply drop gluten-free alternatives.</p>
+<p>We see, in the figure below, that, while the counterfactual consumer surplus remains flat, the actual estimated one has two increases. The first is in 2011, when gluten-free options started to be introduced, and the second in 2016, when more options became available. The same pattern holds for OLS and for IV, but the scale is different.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/welfare_over_time.pdf" class="img-fluid" style="width:95.0%"></p>
+<figcaption>Consumer welfare over time</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/welfare_gain_over_time.pdf" class="img-fluid" style="width:95.0%"></p>
+<figcaption>Welfare gains over time</figcaption>
+</figure>
+</div>
+<p>Regressing the welfare gains on the characteristics of each university per year, we cannot find any heterogeneity depending on the type of student population.</p>
+</section>
+<section id="section-4" class="level3">
+<h3 class="anchored" data-anchor-id="section-4">9.</h3>
+<p>The elasticities implied by logit are <span class="math display">\[
+\eta_{jk} = p_k\, \frac{\partial\log s_j}{\partial p_k} = p_k\,\frac{\partial}{\partial p_k}\left[\delta_{j} - \log \sum_\ell e^{\delta_\ell}\right].
+\]</span> So, elasticities are <span class="math display">\[
+\eta_{jk} = p_k\Big[-\alpha \mathbb{I}[j = k] + s_k\Big].
+\]</span> They depend only on data and on our estimate <span class="math inline">\(\widehat\alpha\)</span>. We compute the elasticity for each university and time, then average them out, using both the OLS and IV estimates. Below are our estimates of average elasticities, for the three time periods.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/elasticity_before_2011.pdf" class="img-fluid" style="width:100.0%"></p>
+<figcaption>Price elasticities, before 2011</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/elasticity_2011_2015.pdf" class="img-fluid" style="width:100.0%"></p>
+<figcaption>Price elasticities, 2011-2015</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/elasticity_2016_plus.pdf" class="img-fluid" style="width:100.0%"></p>
+<figcaption>Price elasticities, 2016 onward</figcaption>
+</figure>
+</div>
+<p>Because the market is relatively evenly split and the logit elasticities depend only on market shares and not characteristics, most of the cross-price elasticities sit at around 0.1. This is not intuitive, as the gluten-free options should be closer substitutes among each other, for example. In terms of policy, this implies that the one company producting gluten-free noodles between 2011 and 2015 did not actually hold much market power, as consumers would be willing to easily substitute between gluten-free and gluten-containing dishes. Given this demand, a counterfactual where a single company became a monopolist of gluten-free options likely would not have a large spike in prices, as that would push consumers towards the other alternatives.</p>
+</section>
+<section id="section-5" class="level3">
+<h3 class="anchored" data-anchor-id="section-5">10.</h3>
+<p>Allowing for there to be two nests, <span class="math inline">\(g=0, 1\)</span>, we use the utility specification <span class="math display">\[
+u_{ijmt} =  \delta_{jmt} + \zeta_{imt} + (1-\rho)\varepsilon_{ijmt},\quad \text{for $j\neq 0$}
+\]</span> where <span class="math inline">\(\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}\)</span>, and the outside option, in a different nest, has utility <span class="math inline">\(u_{i0mt} = \varepsilon_{i0mt}\)</span>. The resulting expression for market shares is <span class="math display">\[
+\log(s_j) - \log(s_0) = \delta_{jmt} + \rho\,\log(s_{j\mid 1}), \quad\text{where }s_{j\mid 1} = \frac{s_j}{1 - s_0}.
+\]</span> This means we get a similar regression specification, with one extra term. Besides the cost-shifters we had before, we also add a third specification where we add the number of other elements in the next as an instrument.</p>
 </section>
 </section>
 

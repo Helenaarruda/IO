@@ -1,0 +1,39 @@
+
+\begin{table}[H]
+   \caption{\label{tab:nested-logit} Nested Logit Demand Estimates}
+   \centering
+   \begin{tabular}{lcccc}
+      \tabularnewline \midrule \midrule
+       & OLS & \multicolumn{3}{c}{IV} \\ 
+      Model:            & (1)            & (2)            & (3)            & (4)\\  
+      \midrule
+      \emph{Variables}\\
+      Price             & -0.477$^{***}$ & -0.861$^{***}$ & -0.813$^{***}$ & -0.838$^{***}$\\   
+                        & (0.008)        & (0.032)        & (0.021)        & (0.016)\\   
+      $\rho$            & 0.355$^{***}$  & -0.120         & 0.039          & -0.022\\   
+                        & (0.014)        & (0.100)        & (0.044)        & (0.027)\\   
+      Spicy index       & -0.067         & -0.047         & -0.047         & -0.046\\   
+                        & (0.071)        & (0.095)        & (0.092)        & (0.094)\\   
+      Wheat content     & 0.116$^{**}$   & 0.265$^{***}$  & 0.268$^{***}$  & 0.271$^{***}$\\   
+                        & (0.046)        & (0.062)        & (0.060)        & (0.061)\\   
+      Vegetable-to-meat & -0.038         & -0.018         & -0.020         & -0.019\\   
+                        & (0.033)        & (0.043)        & (0.042)        & (0.043)\\   
+      Calories          & 0.101          & 0.164$^{*}$    & 0.152$^{*}$    & 0.158$^{*}$\\   
+                        & (0.065)        & (0.087)        & (0.084)        & (0.085)\\   
+      Cost-shifter IVs  & No             & Yes            & Yes            & Yes\\  
+      Interaction IVs   & No             & No             & Yes            & Yes\\  
+      Nest-size IV      & No             & No             & No             & Yes\\  
+      \midrule
+      \emph{Fixed-effects}\\
+      dish              & Yes            & Yes            & Yes            & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations      & 2,800          & 2,800          & 2,800          & 2,800\\  
+      R$^2$             & 0.86088        & 0.45435        & 0.56945        & 0.56920\\  
+      \midrule \midrule
+      \multicolumn{5}{l}{\emph{IID standard-errors in parentheses}}\\
+      \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+\end{table}
+
+
