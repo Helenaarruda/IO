@@ -1,3 +1,138 @@
 ## Part 2
 
-<!-- Add Part 2 work here. This file is included by pset2_submission.qmd. -->
+### 5.
+
+Dividing everything by $\sigma$,
+$$
+\frac{1}{\sigma}\,u_{ijmt} = -\frac{1}{\sigma}\,p_{jmt} + \frac{\mu_j}{\sigma} + \frac{\beta'}{\sigma} X_{jmt} + \frac{\xi_{jmt}}{\sigma} + \varepsilon_{ijmt}.
+$$
+If we define $\alpha = 1/\sigma$ and rescale the coefficients and utility, we get
+$$
+\widetilde{u}_{ijmt} = -\alpha\,p_{jmt} + \widetilde{\mu}_j + \widetilde{\beta}' X_{jmt} + \widetilde{\xi}_{jmt} + \varepsilon_{ijmt}.
+$$
+From now on, this is the form we use, dropping the tildes to have everything rescaled.
+
+### 6.
+First, let $\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}$. Choice probabilities are
+$$
+s_{jmt} = P\Big\{\delta_{jmt} + \varepsilon_{ijmt} \geq \delta_{\ell mt} + \varepsilon_{i\ell mt}\,\forall \ell\Big\} = \dfrac{e^{\delta_{jmt}}}{\sum_\ell e^{\delta_{\ell mt}}},
+$$
+by the properties of the Gumbel distribution. In the data, we see that the shares add up to less than one. We consider that those who are not consuming noodles are picking the outside option of good $0$, which has utility $\varepsilon_{i0mt}$, and mean utility $\delta_{0mt} = 0$. By the same logit formula, the outside option has market share $1/(\sum_\ell e^{\delta_{\ell m t}})$. Dividing one by the other,
+$$
+\frac{s_{jmt}}{s_{0mt}} = e^{\delta_{jmt}} \implies \log(s_{jmt}) - \log(s_{0mt}) = \delta_{jmt}.
+$$
+Using the definition of $\delta$, we get the linear regression
+$$
+\log(s_{jmt}) - \log(s_{0mt}) = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}.
+$$
+Under the assumption that $\mathbb{E}\Big[\xi_{jmt}\mid p_{jmt}, X_{jmt}\Big]$, the parameters can be unbiasedly recovered using OLS. As each good has a different $\mu_j$, we include good fixed effects. Estimates are in the first column of the table below.
+
+```{=latex}
+\input{output/part2_table.tex}
+```
+
+### 7.
+
+Now we assume that the characteristics are exogenous, but that prices can be exogenous. We had to do some data cleaning to get all the university names to match in both datasets. We use the variables in $Z$ as instruments for price. To obtain more variation, we also add interactions between $Z$ and how important it is for a good (for example, Wheat Content $\times$ Wheat Costs). This is so that we also have variation across universities, and not only over time. Results are in the same table as before.
+
+As we would expect prices to be positively correlated to positive demand shocks, the price coefficient in OLS should have an upward bias, being closer to zero. This is exactly what we see: the price coefficient becomes more negative with instruments.
+
+### 8.
+
+Consumer surplus for a given scenario, at a given university and time, takes the form
+$$
+\mathrm{CS} = \frac{1}{\alpha}\, \log\left(\sum_\ell e^{\delta_{\ell mt}}\right).
+$$
+These can be easily computed by plugging in the $\widehat\delta$'s, which are the predicted values from the regressions. We simulate a counterfactual where gluten-free options were never introduced. We assume that, in that world, prices and everything else would have remained constant. We create a function that takes in the data and a vector or parameters, and outputs the welfare of each university and time. For the counterfactual, we simply drop gluten-free alternatives.
+
+We see, in the figure below, that, while the counterfactual consumer surplus remains flat, the actual estimated one has two increases. The first is in 2011, when gluten-free options started to be introduced, and the second in 2016, when more options became available. The same pattern holds for OLS and for IV, but the scale is different.
+
+![Consumer welfare over time](output/welfare_over_time.pdf){width=95% fig-pos="H"}
+
+![Welfare gains over time](output/welfare_gain_over_time.pdf){width=95% fig-pos="H"}
+
+Regressing the welfare gains on the characteristics of each university per year, we cannot find any heterogeneity depending on the type of student population.
+
+```{=latex}
+\input{output/welfare_gain_by_period.tex}
+```
+
+### 9.
+
+The elasticities implied by logit are
+$$
+\eta_{jk} = p_k\, \frac{\partial\log s_j}{\partial p_k} = p_k\,\frac{\partial}{\partial p_k}\left[\delta_{j} - \log \sum_\ell e^{\delta_\ell}\right].
+$$
+So, elasticities are
+$$
+\eta_{jk} = p_k\Big[-\alpha \mathbb{I}\{j = k\} + s_k\Big].
+$$
+They depend only on data and on our estimate $\widehat\alpha$. We compute the elasticity for each university and time, then average them out, using both the OLS and IV estimates. Below are our estimates of average elasticities, for the three time periods.
+
+![Price elasticities, before 2011](output/elasticity_before_2011.pdf){width=100% fig-pos="H"}
+
+![Price elasticities, 2011-2015](output/elasticity_2011_2015.pdf){width=100% fig-pos="H"}
+
+![Price elasticities, 2016 onward](output/elasticity_2016_plus.pdf){width=100% fig-pos="H"}
+
+Because the market is relatively evenly split and the logit elasticities depend only on market shares and not characteristics, most of the cross-price elasticities sit at around 0.1. This is not intuitive, as the gluten-free options should be closer substitutes among each other, for example. In terms of policy, this implies that the one company producting gluten-free noodles between 2011 and 2015 did not actually hold much market power, as consumers would be willing to easily substitute between gluten-free and gluten-containing dishes. Given this demand, a counterfactual where a single company became a monopolist of gluten-free options likely would not have a large spike in prices, as that would push consumers towards the other alternatives.
+
+### 10.
+
+Allowing for there to be two nests, $g=0, 1$, we use the utility specification
+$$
+u_{ijmt} =  \delta_{jmt} + \zeta_{imt} + (1-\rho)\varepsilon_{ijmt},\quad \text{for $j\neq 0$}
+$$
+where $\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}$, and the outside option, in a different nest, has utility $u_{i0mt} = \varepsilon_{i0mt}$. The resulting expression for market shares is
+$$
+\log(s_j) - \log(s_0) = \delta_{jmt} + \rho\,\log(s_{j\mid 1}), \quad\text{where }s_{j\mid 1} = \frac{s_j}{1 - s_0}.
+$$
+This means we get a similar regression specification, with one extra term. Besides the cost-shifters we had before, we also add a third specification where we add the number of other elements in the next as an instrument.
+
+```{=latex}
+\input{output/nested_logit.tex}
+```
+
+Addings instruments, $\rho$ seems to be very close to 0, which means that the model collapses to a standard logit, and the nest doesn't really help. If we run the welfare exercises again for a $\rho$ very close to zero, the results will be basically the same as in the standard logit case. Instead, we use the naive OLS estimates, since it is the only one with a $\rho$ that is significant and positive. Here, the welfare also depends on $\rho$:
+$$
+\mathrm{CS} = \frac{1}{\alpha}\, \log\left(1 +\left(\sum_{\ell\neq 0} e^{\delta_{\ell mt}/(1-\rho)}\right)^{1-\rho}\right).
+$$
+
+And the elasticities are
+$$
+\eta_{jk}
+=
+\alpha p_k
+\left[
+s_k
++
+\frac{\rho}{1-\rho}s_{k\mid 1}
+-
+\frac{1}{1-\rho}\mathbb{I}\{j=k\}
+\right].
+$$
+![Consumer welfare over time](output/welfare_over_time_nested.pdf){width=95% fig-pos="H"}
+
+![Welfare gains over time](output/welfare_gain_over_time_nested.pdf){width=95% fig-pos="H"}
+
+```{=latex}
+\input{output/welfare_gain_by_period_nested.tex}
+```
+
+![Elasticities](output/elasticities_nested_logit_ols.pdf){width=95% fig-pos="H"}
+
+Overall, results are very similar to using the OLS estimator for standard logit.
+
+### 11.
+
+The Veg2Meat variable fluctuates a lot within dishes, and none of the dishes always have a ratio of 1. Therefore, none of the dishes are always vegetarian. Because of this, we use three nests: one for the gluten-free goods, one for the rest of the noodles, and one for the outside option. For simplicity, we focus on the specification with the most instruments. Here, the regression specification is
+$$
+\log(s_j) - \log(s_0) = \delta_{jmt} + \rho\,\log(s_{j\mid g(j)}), \quad\text{where }s_{j\mid g} = \frac{s_j}{\sum_{\ell\in g(j)} s_\ell},
+$$
+and the outside option just has utility $\varepsilon_{i0mt}$.
+
+```{=latex}
+\input{output/nested_logit_3nests.tex}
+```
+
+The $\rho$ we find is, once again, very close to zero, which means the ensts add very little information. The welfare exercises will yield pretty much the same results as we had before. The price coefficient is also very close to the one we had for simple logit.

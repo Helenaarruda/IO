@@ -3,6 +3,7 @@ title: "Problem Set 2"
 subtitle: "Industrial Organization"
 author: "Helena, Igor, and Qixuan"
 date: last-modified
+
 format:
   pdf:
     pdf-engine: xelatex
@@ -14,7 +15,17 @@ format:
     toc: false
     include-in-header:
       text: |
+        \usepackage{tabularray}
         \usepackage{float}
+        \usepackage{graphicx}
+        \usepackage{codehigh}
+        \usepackage[normalem]{ulem}
+        \UseTblrLibrary{booktabs}
+        \UseTblrLibrary{siunitx}
+        \newcommand{\tinytableTabularrayUnderline}[1]{\underline{#1}}
+        \newcommand{\tinytableTabularrayStrikeout}[1]{\sout{#1}}
+        \NewTableCommand{\tinytableDefineColor}[3]{\definecolor{#1}{#2}{#3}}
+
 execute:
   enabled: false
   echo: false

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>pset2_part2</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="pset2_part2_files/libs/clipboard/clipboard.min.js"></script>
+<script src="pset2_part2_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="pset2_part2_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="pset2_part2_files/libs/quarto-html/popper.min.js"></script>
+<script src="pset2_part2_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="pset2_part2_files/libs/quarto-html/anchor.min.js"></script>
+<link href="pset2_part2_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="pset2_part2_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="pset2_part2_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="pset2_part2_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="pset2_part2_files/libs/bootstrap/bootstrap-477d6f6f3e99dc2a863aed51730b89c0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="part-2" class="level2">
+<h2 class="anchored" data-anchor-id="part-2">Part 2</h2>
+<section id="section" class="level3">
+<h3 class="anchored" data-anchor-id="section">5.</h3>
+<p>Dividing everything by <span class="math inline">\(\sigma\)</span>, <span class="math display">\[
+\frac{1}{\sigma}\,u_{ijmt} = -\frac{1}{\sigma}\,p_{jmt} + \frac{\mu_j}{\sigma} + \frac{\beta'}{\sigma} X_{jmt} + \frac{\xi_{jmt}}{\sigma} + \varepsilon_{ijmt}.
+\]</span> If we define <span class="math inline">\(\alpha = 1/\sigma\)</span> and rescale the coefficients and utility, we get <span class="math display">\[
+\widetilde{u}_{ijmt} = -\alpha\,p_{jmt} + \widetilde{\mu}_j + \widetilde{\beta}' X_{jmt} + \widetilde{\xi}_{jmt} + \varepsilon_{ijmt}.
+\]</span> From now on, this is the form we use, dropping the tildes to have everything rescaled.</p>
+</section>
+<section id="section-1" class="level3">
+<h3 class="anchored" data-anchor-id="section-1">6.</h3>
+<p>First, let <span class="math inline">\(\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}\)</span>. Choice probabilities are <span class="math display">\[
+s_{jmt} = P\Big\{\delta_{jmt} + \varepsilon_{ijmt} \geq \delta_{\ell mt} + \varepsilon_{i\ell mt}\,\forall \ell\Big\} = \dfrac{e^{\delta_{jmt}}}{\sum_\ell e^{\delta_{\ell mt}}},
+\]</span> by the properties of the Gumbel distribution. In the data, we see that the shares add up to less than one. We consider that those who are not consuming noodles are picking the outside option of good <span class="math inline">\(0\)</span>, which has utility <span class="math inline">\(\varepsilon_{i0mt}\)</span>, and mean utility <span class="math inline">\(\delta_{0mt} = 0\)</span>. By the same logit formula, the outside option has market share <span class="math inline">\(1/(\sum_\ell e^{\delta_{\ell m t}})\)</span>. Dividing one by the other, <span class="math display">\[
+\frac{s_{jmt}}{s_{0mt}} = e^{\delta_{jmt}} \implies \log(s_{jmt}) - \log(s_{0mt}) = \delta_{jmt}.
+\]</span> Using the definition of <span class="math inline">\(\delta\)</span>, we get the linear regression <span class="math display">\[
+\log(s_{jmt}) - \log(s_{0mt}) = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}.
+\]</span> Under the assumption that <span class="math inline">\(\mathbb{E}\Big[\xi_{jmt}\mid p_{jmt}, X_{jmt}\Big]\)</span>, the parameters can be unbiasedly recovered using OLS. As each good has a different <span class="math inline">\(\mu_j\)</span>, we include good fixed effects. Estimates are in the first column of the table below.</p>
+</section>
+<section id="section-2" class="level3">
+<h3 class="anchored" data-anchor-id="section-2">7.</h3>
+<p>Now we assume that the characteristics are exogenous, but that prices can be exogenous. We had to do some data cleaning to get all the university names to match in both datasets. We use the variables in <span class="math inline">\(Z\)</span> as instruments for price. To obtain more variation, we also add interactions between <span class="math inline">\(Z\)</span> and how important it is for a good (for example, Wheat Content <span class="math inline">\(\times\)</span> Wheat Costs). This is so that we also have variation across universities, and not only over time. Results are in the same table as before.</p>
+<p>As we would expect prices to be positively correlated to positive demand shocks, the price coefficient in OLS should have an upward bias, being closer to zero. This is exactly what we see: the price coefficient becomes more negative with instruments.</p>
+</section>
+<section id="section-3" class="level3">
+<h3 class="anchored" data-anchor-id="section-3">8.</h3>
+<p>Consumer surplus for a given scenario, at a given university and time, takes the form <span class="math display">\[
+\mathrm{CS} = \frac{1}{\alpha}\, \log\left(\sum_\ell e^{\delta_{\ell mt}}\right).
+\]</span> These can be easily computed by plugging in the <span class="math inline">\(\widehat\delta\)</span>’s, which are the predicted values from the regressions. We simulate a counterfactual where gluten-free options were never introduced. We assume that, in that world, prices and everything else would have remained constant. We create a function that takes in the data and a vector or parameters, and outputs the welfare of each university and time. For the counterfactual, we simply drop gluten-free alternatives.</p>
+<p>We see, in the figure below, that, while the counterfactual consumer surplus remains flat, the actual estimated one has two increases. The first is in 2011, when gluten-free options started to be introduced, and the second in 2016, when more options became available. The same pattern holds for OLS and for IV, but the scale is different.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/welfare_over_time.pdf" class="img-fluid" style="width:95.0%"></p>
+<figcaption>Consumer welfare over time</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/welfare_gain_over_time.pdf" class="img-fluid" style="width:95.0%"></p>
+<figcaption>Welfare gains over time</figcaption>
+</figure>
+</div>
+<p>Regressing the welfare gains on the characteristics of each university per year, we cannot find any heterogeneity depending on the type of student population.</p>
+</section>
+<section id="section-4" class="level3">
+<h3 class="anchored" data-anchor-id="section-4">9.</h3>
+<p>The elasticities implied by logit are <span class="math display">\[
+\eta_{jk} = p_k\, \frac{\partial\log s_j}{\partial p_k} = p_k\,\frac{\partial}{\partial p_k}\left[\delta_{j} - \log \sum_\ell e^{\delta_\ell}\right].
+\]</span> So, elasticities are <span class="math display">\[
+\eta_{jk} = p_k\Big[-\alpha \mathbb{I}[j = k] + s_k\Big].
+\]</span> They depend only on data and on our estimate <span class="math inline">\(\widehat\alpha\)</span>. We compute the elasticity for each university and time, then average them out, using both the OLS and IV estimates. Below are our estimates of average elasticities, for the three time periods.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/elasticity_before_2011.pdf" class="img-fluid" style="width:100.0%"></p>
+<figcaption>Price elasticities, before 2011</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/elasticity_2011_2015.pdf" class="img-fluid" style="width:100.0%"></p>
+<figcaption>Price elasticities, 2011-2015</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="output/elasticity_2016_plus.pdf" class="img-fluid" style="width:100.0%"></p>
+<figcaption>Price elasticities, 2016 onward</figcaption>
+</figure>
+</div>
+<p>Because the market is relatively evenly split and the logit elasticities depend only on market shares and not characteristics, most of the cross-price elasticities sit at around 0.1. This is not intuitive, as the gluten-free options should be closer substitutes among each other, for example. In terms of policy, this implies that the one company producting gluten-free noodles between 2011 and 2015 did not actually hold much market power, as consumers would be willing to easily substitute between gluten-free and gluten-containing dishes. Given this demand, a counterfactual where a single company became a monopolist of gluten-free options likely would not have a large spike in prices, as that would push consumers towards the other alternatives.</p>
+</section>
+<section id="section-5" class="level3">
+<h3 class="anchored" data-anchor-id="section-5">10.</h3>
+<p>Allowing for there to be two nests, <span class="math inline">\(g=0, 1\)</span>, we use the utility specification <span class="math display">\[
+u_{ijmt} =  \delta_{jmt} + \zeta_{imt} + (1-\rho)\varepsilon_{ijmt},\quad \text{for $j\neq 0$}
+\]</span> where <span class="math inline">\(\delta_{jmt} = -\alpha\,p_{jmt} + \mu_j + \beta' X_{jmt} + \xi_{jmt}\)</span>, and the outside option, in a different nest, has utility <span class="math inline">\(u_{i0mt} = \varepsilon_{i0mt}\)</span>. The resulting expression for market shares is <span class="math display">\[
+\log(s_j) - \log(s_0) = \delta_{jmt} + \rho\,\log(s_{j\mid 1}), \quad\text{where }s_{j\mid 1} = \frac{s_j}{1 - s_0}.
+\]</span> This means we get a similar regression specification, with one extra term. Besides the cost-shifters we had before, we also add a third specification where we add the number of other elements in the next as an instrument.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
