@@ -1,0 +1,5 @@
+Specification,Observations,R-squared,Adjusted R-squared,F-statistic (included shocks),p-value (included shocks),"F-statistic (market shocks, full model)","p-value (market shocks, full model)","F-statistic (input shocks, full model)","p-value (input shocks, full model)"
+(1) Baseline,2690,0.04786377964979782,0.04644532718000238,,,,,,
+(2) Market shocks,2690,0.14900762837394488,0.14710455188130367,50.44521835641349,3.1173659067759525e-22,,,,
+(3) Input-cost shocks,2690,0.29183497724925256,0.2899866718207458,176.02930691448674,3.541772022314098e-104,,,,
+(4) All cost shocks,2690,0.3860642727234622,0.3840025482661902,145.48055663827944,6.55561271242141e-137,49.58053519648599,7.181948705646743e-22,198.49774520711821,2.995661467015165e-116
