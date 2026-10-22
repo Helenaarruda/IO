@@ -1,0 +1,51 @@
+dataset,variable,name,n_obs
+survey_noodles,coll,A&M,991
+choice_noodles,University,BU,140
+college-year,campus,BU,20
+choice_noodles,University,Carleton,140
+college-year,campus,Carleton,20
+survey_noodles,coll,Carleton,994
+choice_noodles,University,Colorado,140
+college-year,campus,Colorado,20
+survey_noodles,coll,Colorado C.,1008
+choice_noodles,University,Columbia,140
+college-year,campus,Columbia,20
+choice_noodles,University,Grinnel,140
+college-year,campus,Grinnel,20
+survey_noodles,coll,Grinnel,989
+choice_noodles,University,Harvard,140
+college-year,campus,Harvard,20
+choice_noodles,University,MIT,140
+college-year,campus,MIT,20
+choice_noodles,University,Macalester,140
+college-year,campus,Macalester,20
+survey_noodles,coll,Macalester,999
+choice_noodles,University,Olin,140
+college-year,campus,Olin,20
+survey_noodles,coll,Olin,1015
+choice_noodles,University,Penn State,140
+college-year,campus,Penn State,20
+choice_noodles,University,Princeton,140
+college-year,campus,Princeton,20
+college-year,campus,R-H,20
+choice_noodles,University,Reed,140
+college-year,campus,Reed,20
+survey_noodles,coll,Reed,1005
+choice_noodles,University,Rose-Hul.,140
+survey_noodles,coll,Rose-Hulman,1006
+choice_noodles,University,Saint John,140
+choice_noodles,University,Sewanee,140
+college-year,campus,Sewanee,20
+survey_noodles,coll,Sewanee,1006
+college-year,campus,St Johns,20
+survey_noodles,coll,St. John's,1018
+choice_noodles,University,Texas A&M,140
+college-year,campus,Texas-A&M,20
+college-year,campus,U. Chicago,20
+choice_noodles,University,UCLA,140
+college-year,campus,UCLA,20
+choice_noodles,University,UT.Austin,140
+college-year,campus,UT.Austin,20
+choice_noodles,University,Univ. Chicago,140
+choice_noodles,University,Yale,140
+college-year,campus,Yale,20

@@ -1,19 +1,18 @@
-import jax
-import jax.numpy as jnp
 import pandas as pd
 from pathlib import Path
-from scipy.optimize import root
-from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
-
+import statsmodels.formula.api as smf
+from matplotlib.ticker import MaxNLocator
 
 # ==============================================================================
-# Part 0 - Input
+# Part 0 Responses — Input and descriptive evidence
 # ==============================================================================
-#INPUT_DIR = Path(__file__).resolve().parents[1] / "data" / "input"
-INPUT_DIR = Path.cwd() / "pset_2" / "data" / "input"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+INPUT_DIR = PROJECT_ROOT / "pset_2" / "data" / "input"
+output_dir = PROJECT_ROOT / "pset_2" / "data" / "output"
+output_dir.mkdir(parents=True, exist_ok=True)
 
 
 def carregar_datasets() -> dict[str, pd.DataFrame]:
@@ -32,455 +31,926 @@ survey_noodles = datasets["survey_noodles"]
 college_year = datasets["college_year"]
 
 
+# --------------------------------------------------
+# Standardize university names across datasets
+# --------------------------------------------------
+
+choice_map = {
+    "Texas A&M": "A&M",
+    "Univ. Chicago": "University of Chicago",
+    "Saint John": "St. John's",
+    "Rose-Hul.": "Rose-Hulman",
+}
+
+choice_noodles["University"] = (
+    choice_noodles["University"].str.strip().replace(choice_map)
+)
+
+# Standardize campus in college_year
+college_map = {
+    "Texas-A&M": "A&M",
+    "U. Chicago": "University of Chicago",
+    "St Johns": "St. John's",
+    "R-H": "Rose-Hulman",
+}
+
+college_year["campus"] = (
+    college_year["campus"].str.strip().replace(college_map)
+)
+
+# Standardize coll in survey_noodles
+survey_map = {
+    "Colorado C.": "Colorado",
+}
+
+survey_noodles["coll"] = (
+    survey_noodles["coll"].str.strip().replace(survey_map)
+)
 
 # ==============================================================================
-# Part I - Exhibit 1: Adoption of gluten-free noodle options over time
+# Part 1 Responses — Pricing and reduced-form analysis
 # ==============================================================================
 
-# 1. Inspect the available dishes and chains before classifying gluten-free options
-print("Available dishes:")
-print(sorted(choice_noodles["dish"].dropna().unique()))
+# Pricing equations
+# ==================================================
 
-print("\nAvailable chains:")
-print(sorted(choice_noodles["chain"].dropna().unique()))
+# Merge choice data and cost data
+# ==================================================
 
-print("\nYears in the data:")
-print(sorted(choice_noodles["year"].dropna().unique()))
+df = choice_noodles.copy()
+costs = college_year.copy()
 
-# 2. Inspect the market-share variable
-print("\nShare summary:")
-print(choice_noodles["Share"].describe())
+df = df.merge(
+    costs,
+    left_on=["University", "year"],
+    right_on=["campus", "year"],
+    how="left",
+    validate="many_to_one"
+)
 
-# After inspecting the dish names, define which dishes are gluten-free.
-# Replace the example below with the exact labels in your dataset.
-GLUTEN_FREE_DISHES = [
-    "AN_gf",
-    "BN_gf",
-    "YN_gf",
+cost_vars = [
+    "WageIDX", "ReEsIDX",
+    "WheatPIDX", "VegPIDX", "MeatPIDX"
 ]
 
-if not GLUTEN_FREE_DISHES:
-    print(
-        "\nDefine GLUTEN_FREE_DISHES using the actual dish labels "
-        "before running the exhibit."
-    )
-else:
-    # 3. Create a gluten-free indicator
-    df = choice_noodles.copy()
-    df["GlutenFree"] = df["dish"].isin(GLUTEN_FREE_DISHES)
+print("Missing cost indices after merge:")
+print(df[cost_vars].isna().sum())
 
-    # 4. Calculate total gluten-free and traditional noodle shares
-    # within each campus-year market.
-    # Share is defined in the assignment as quantity / students eating lunch.
-    campus_year = (
-        df.groupby(["University", "year", "GlutenFree"], as_index=False)
-          ["Share"].sum()
+
+# Construct product-market-specific cost shocks
+# ==================================================
+
+df["wheat_shock"] = (
+    df["WheatPIDX"] * df["WheatContent"]
+)
+
+df["vegetable_shock"] = (
+    df["VegPIDX"] * df["Veg2meat"]
+)
+
+df["meat_shock"] = np.where(
+    df["Veg2meat"] > 0,
+    df["MeatPIDX"] / df["Veg2meat"],
+    np.nan
+)
+
+
+# Define the four specifications
+# ==================================================
+
+dependent = "Price"
+
+characteristics = [
+    "SpicyIndex",
+    "WheatContent",
+    "Veg2meat",
+    "Calories"
+]
+
+market_shocks = [
+    "WageIDX",
+    "ReEsIDX"
+]
+
+input_shocks = [
+    "wheat_shock",
+    "vegetable_shock",
+    "meat_shock"
+]
+
+specifications = {
+    "(1) Baseline": characteristics,
+
+    "(2) Market shocks": (
+        characteristics + market_shocks
+    ),
+
+    "(3) Input-cost shocks": (
+        characteristics + input_shocks
+    ),
+
+    "(4) All cost shocks": (
+        characteristics + market_shocks + input_shocks
+    )
+}
+
+
+# Use the same sample for all four regressions
+# ==================================================
+
+all_required_vars = list(dict.fromkeys(
+    [dependent]
+    + characteristics
+    + market_shocks
+    + input_shocks
+))
+
+reg_data = df[all_required_vars].dropna().copy()
+
+print("\nCommon estimation sample:", len(reg_data))
+
+
+# Estimate all regressions using OLS + HC1
+# ==================================================
+
+models = {}
+
+for name, regressors in specifications.items():
+
+    X = sm.add_constant(reg_data[regressors])
+    y = reg_data[dependent]
+
+    model = sm.OLS(y, X).fit(cov_type="HC1")
+    models[name] = model
+
+    print(f"\n{name}")
+    print(f"Observations: {int(model.nobs)}")
+    print(f"R-squared: {model.rsquared:.4f}")
+
+
+# Joint F-tests (robust Wald tests)
+# ==================================================
+
+def run_joint_test(model, variables):
+    """
+    Test whether all coefficients in variables
+    are jointly equal to zero, using HC1 covariance.
+    """
+    restrictions = ", ".join(
+        f"{variable} = 0" for variable in variables
     )
 
-    # Average across campuses, giving each campus equal weight
-    annual_shares = (
-        campus_year.groupby(["year", "GlutenFree"])["Share"]
-        .mean()
-        .unstack(fill_value=0)
-        .rename(columns={
-            False: "Traditional noodles",
-            True: "Gluten-free noodles"
-        })
-    )
+    result = model.f_test(restrictions)
 
-  # 5. Plot the evolution over time
+    return {
+        "F-statistic": float(np.asarray(result.fvalue).item()),
+        "p-value": float(np.asarray(result.pvalue).item())
+    }
+
+
+# Each model tests the shocks included in that specification.
+# Model 2: market shocks jointly
+# Model 3: input-cost shocks jointly
+# Model 4: all five cost shocks jointly
+
+test_results = {}
+
+test_results["(2) Market shocks"] = run_joint_test(
+    models["(2) Market shocks"],
+    market_shocks
+)
+
+test_results["(3) Input-cost shocks"] = run_joint_test(
+    models["(3) Input-cost shocks"],
+    input_shocks
+)
+
+test_results["(4) All cost shocks"] = run_joint_test(
+    models["(4) All cost shocks"],
+    market_shocks + input_shocks
+)
+
+# Additional tests within the full specification:
+# market shocks jointly, conditional on input-cost shocks
+test_market_full = run_joint_test(
+    models["(4) All cost shocks"],
+    market_shocks
+)
+
+# input-cost shocks jointly, conditional on market shocks
+test_inputs_full = run_joint_test(
+    models["(4) All cost shocks"],
+    input_shocks
+)
+
+
+# Save coefficient comparison table
+# ==================================================
+
+all_variables = list(dict.fromkeys(
+    ["const"] + [
+        variable
+        for regressors in specifications.values()
+        for variable in regressors
+    ]
+))
+
+coef_table = pd.DataFrame(index=all_variables)
+
+for name, model in models.items():
+
+    values = []
+
+    for variable in all_variables:
+
+        if variable not in model.params.index:
+            values.append("—")
+            continue
+
+        coef = model.params[variable]
+        se = model.bse[variable]
+        p = model.pvalues[variable]
+
+        stars = (
+            "***" if p < 0.01
+            else "**" if p < 0.05
+            else "*" if p < 0.10
+            else ""
+        )
+
+        values.append(
+            f"{coef:.4f}{stars} ({se:.4f})"
+        )
+
+    coef_table[name] = values
+
+coef_table.index.name = "Variable"
+
+# Append model-level statistics to the coefficient table
+coef_table.loc["Observations"] = [
+    f"{int(models[name].nobs)}"
+    for name in specifications
+]
+
+coef_table.loc["R-squared"] = [
+    f"{models[name].rsquared:.4f}"
+    for name in specifications
+]
+
+coef_table.to_csv(
+    output_dir / "pricing_regressions_comparison.csv"
+)
+
+
+# Save N, R-squared, and F-test results
+# ==================================================
+
+stats_rows = []
+
+for name, model in models.items():
+
+    row = {
+        "Specification": name,
+        "Observations": int(model.nobs),
+        "R-squared": model.rsquared,
+        "Adjusted R-squared": model.rsquared_adj,
+        "F-statistic (included shocks)": np.nan,
+        "p-value (included shocks)": np.nan,
+        "F-statistic (market shocks, full model)": np.nan,
+        "p-value (market shocks, full model)": np.nan,
+        "F-statistic (input shocks, full model)": np.nan,
+        "p-value (input shocks, full model)": np.nan
+    }
+
+    if name in test_results:
+        row["F-statistic (included shocks)"] = (
+            test_results[name]["F-statistic"]
+        )
+        row["p-value (included shocks)"] = (
+            test_results[name]["p-value"]
+        )
+
+    if name == "(4) All cost shocks":
+        row["F-statistic (market shocks, full model)"] = (
+            test_market_full["F-statistic"]
+        )
+        row["p-value (market shocks, full model)"] = (
+            test_market_full["p-value"]
+        )
+
+        row["F-statistic (input shocks, full model)"] = (
+            test_inputs_full["F-statistic"]
+        )
+        row["p-value (input shocks, full model)"] = (
+            test_inputs_full["p-value"]
+        )
+
+    stats_rows.append(row)
+
+stats_table = pd.DataFrame(stats_rows)
+
+stats_table.to_csv(
+    output_dir / "pricing_regressions_stats_Ftests.csv",
+    index=False
+)
+
+
+# Print results
+# ==================================================
+
+print("\nCOEFFICIENT COMPARISON")
+print(coef_table.to_string())
+
+print("\nMODEL STATISTICS AND JOINT TESTS")
+print(stats_table.round(4).to_string(index=False))
+
+print("\nSaved files:")
+print(output_dir / "pricing_regressions_comparison.csv")
+print(output_dir / "pricing_regressions_stats_Ftests.csv")
+
+
+
+
+# Reduced-form results and Descriptive Exhibits
+# ==================================================
+
+
+# Define adoption year for each chain
+# ------------------------------------------------------------
+
+adoption_year = {
+    "YourNoodles": 2011,
+    "AllNoodles": 2016,
+    "BestNoodles": 2016
+}
+
+
+# Aggregate product shares to chain-campus-year
+# ------------------------------------------------------------
+
+chain_panel = (
+    choice_noodles
+    .groupby(["chain", "University", "year"], as_index=False)
+    .agg(chain_share=("Share", "sum"))
+)
+
+chain_panel["adoption_year"] = (
+    chain_panel["chain"].map(adoption_year)
+)
+
+chain_panel["event_time"] = (
+    chain_panel["year"] - chain_panel["adoption_year"]
+)
+
+print("Number of observations:", len(chain_panel))
+print("\nObservations by chain:")
+print(chain_panel.groupby("chain").size())
+
+
+# Create event-time indicators
+# Reference period: k = -1
+# Bin tails to retain all available years
+# ------------------------------------------------------------
+
+event_bins = {
+    "event_le_m6": chain_panel["event_time"] <= -6,
+    "event_m5": chain_panel["event_time"] == -5,
+    "event_m4": chain_panel["event_time"] == -4,
+    "event_m3": chain_panel["event_time"] == -3,
+    "event_m2": chain_panel["event_time"] == -2,
+    "event_0": chain_panel["event_time"] == 0,
+    "event_p1": chain_panel["event_time"] == 1,
+    "event_p2": chain_panel["event_time"] == 2,
+    "event_p3": chain_panel["event_time"] == 3,
+    "event_p4": chain_panel["event_time"] == 4,
+    "event_ge_p5": chain_panel["event_time"] >= 5
+}
+
+for variable, condition in event_bins.items():
+    chain_panel[variable] = condition.astype(int)
+
+event_terms = list(event_bins.keys())
+
+
+# Estimate reduced-form event-study regression
+# ------------------------------------------------------------
+
+formula = (
+    "chain_share ~ "
+    + " + ".join(event_terms)
+    + " + C(chain) + C(University):C(year)"
+)
+
+event_model = smf.ols(
+    formula,
+    data=chain_panel
+).fit(
+    cov_type="cluster",
+    cov_kwds={"groups": chain_panel["University"]}
+)
+
+print("\nEVENT-STUDY REGRESSION")
+print(f"Observations: {int(event_model.nobs)}")
+print(f"R-squared: {event_model.rsquared:.4f}")
+
+# Pre-treatment coefficients
+pre_terms = [
+    "event_le_m6",
+    "event_m5",
+    "event_m4",
+    "event_m3",
+    "event_m2"
+]
+
+# Post-treatment coefficients
+post_terms = [
+    "event_0",
+    "event_p1",
+    "event_p2",
+    "event_p3",
+    "event_p4",
+    "event_ge_p5"
+]
+
+def joint_wald_test(model, terms):
+    restriction = ", ".join(f"{term} = 0" for term in terms)
+    result = model.f_test(restriction)
+
+    print(f"F-statistic: {float(np.asarray(result.fvalue).item()):.3f}")
+    print(f"p-value: {float(np.asarray(result.pvalue).item()):.4f}")
+
+print("Pre-treatment coefficients jointly equal to zero:")
+joint_wald_test(event_model, pre_terms)
+
+print("\nPost-treatment coefficients jointly equal to zero:")
+joint_wald_test(event_model, post_terms)
+
+# Extract event-study coefficients and confidence intervals
+# ------------------------------------------------------------
+
+event_labels = {
+    "event_le_m6": "≤ -6",
+    "event_m5": "-5",
+    "event_m4": "-4",
+    "event_m3": "-3",
+    "event_m2": "-2",
+    "event_0": "0",
+    "event_p1": "1",
+    "event_p2": "2",
+    "event_p3": "3",
+    "event_p4": "4",
+    "event_ge_p5": "≥ 5"
+}
+
+results = []
+
+for variable in event_terms:
+    ci_low, ci_high = event_model.conf_int().loc[variable]
+
+    results.append({
+        "Event time": event_labels[variable],
+        "Variable": variable,
+        "Coefficient": event_model.params[variable],
+        "Standard error": event_model.bse[variable],
+        "p-value": event_model.pvalues[variable],
+        "CI 95% lower": ci_low,
+        "CI 95% upper": ci_high
+    })
+
+event_results = pd.DataFrame(results)
+
+# Save coefficients for reporting
+event_results.to_csv(
+    output_dir / "event_study_coefficients.csv",
+    index=False
+)
+
+
+# Plot event-study coefficients and 95% confidence intervals
+# ------------------------------------------------------------
+
+plot_labels = [
+    "≤ -6", "-5", "-4", "-3", "-2",
+    "-1 (ref.)", "0", "1", "2", "3", "4", "≥ 5"
+]
+
+# Insert the omitted reference period at zero
+plot_results = event_results.copy()
+
+reference_row = pd.DataFrame([{
+    "Event time": "-1 (ref.)",
+    "Variable": "reference",
+    "Coefficient": 0.0,
+    "Standard error": np.nan,
+    "p-value": np.nan,
+    "CI 95% lower": np.nan,
+    "CI 95% upper": np.nan
+}])
+
+plot_results = pd.concat(
+    [plot_results, reference_row],
+    ignore_index=True
+)
+
+plot_results["order"] = plot_results["Event time"].map(
+    {label: i for i, label in enumerate(plot_labels)}
+)
+
+plot_results = plot_results.sort_values("order")
+
+x = np.arange(len(plot_results))
+
 fig, ax = plt.subplots(figsize=(10, 6))
 
-# Plot market shares
-ax.plot(
-    annual_shares.index,
-    annual_shares["Traditional noodles"],
-    marker="o",
-    markersize=5,
-    linewidth=2,
-    label="Traditional noodles"
+# Confidence intervals for estimated coefficients
+estimated = plot_results["Variable"] != "reference"
+
+ax.errorbar(
+    x[estimated],
+    plot_results.loc[estimated, "Coefficient"],
+    yerr=[
+        plot_results.loc[estimated, "Coefficient"]
+        - plot_results.loc[estimated, "CI 95% lower"],
+        plot_results.loc[estimated, "CI 95% upper"]
+        - plot_results.loc[estimated, "Coefficient"]
+    ],
+    fmt="o",
+    capsize=4,
+    linewidth=1.3,
+    label="Estimate and 95% CI"
 )
 
-ax.plot(
-    annual_shares.index,
-    annual_shares["Gluten-free noodles"],
-    marker="o",
-    markersize=5,
-    linewidth=2,
-    label="Gluten-free noodles"
+# Reference period
+ref_idx = plot_results.index[
+    plot_results["Variable"] == "reference"
+][0]
+ref_x = plot_results.index.get_loc(ref_idx)
+
+ax.scatter(
+    ref_x, 0,
+    marker="D",
+    label="Reference period (k = -1)"
 )
 
-# Mark the two important events
-ax.axvline(
-    x=2010,
-    color="gray",
-    linestyle="--",
-    linewidth=1.4,
-    alpha=0.9
-)
+ax.axhline(0, linestyle="--", linewidth=1)
+ax.axvline(5.5, linestyle=":", linewidth=1)
 
-ax.axvline(
-    x=2016,
-    color="gray",
-    linestyle=":",
-    linewidth=1.6,
-    alpha=0.9
-)
+ax.set_xticks(x)
+ax.set_xticklabels(plot_results["Event time"])
 
-# Add event annotations
-ax.text(
-    2010.2, 0.97,
-    "First GF introduction",
-    transform=ax.get_xaxis_transform(),
-    ha="left",
-    va="top",
-    fontsize=9,
-    color="dimgray"
-)
+ax.set_xlabel("Years relative to GF introduction")
+ax.set_ylabel("Change in chain market share relative to k = -1")
+ax.set_title("Event Study: Noodle Market Share Around GF Introduction")
 
-ax.text(
-    2016.2, 0.82,
-    "Expansion to other chains",
-    transform=ax.get_xaxis_transform(),
-    ha="left",
-    va="top",
-    fontsize=9,
-    color="dimgray"
-)
+ax.grid(axis="y", alpha=0.25)
+ax.legend(frameon=False)
+fig.tight_layout()
 
-# Titles and labels
-ax.set_title(
-    "Noodle Market Shares Before and After GF Introduction",
-    fontsize=13,
-    pad=14
-)
-ax.set_xlabel("Year")
-ax.set_ylabel("Average share of students eating lunch")
-
-# Use integer years on the x-axis
-years = annual_shares.index.astype(int)
-ax.set_xticks(years)
-ax.set_xticklabels(years, rotation=45, ha="right")
-
-# Set sensible axis limits
-ax.set_xlim(years.min() - 0.5, years.max() + 0.5)
-ax.set_ylim(bottom=0)
-
-# Formatting
-ax.grid(axis="y", alpha=0.3)
-ax.legend(frameon=False, loc="best")
-ax.spines["top"].set_visible(False)
-ax.spines["right"].set_visible(False)
-
-plt.tight_layout()
-plt.show()
-
-# Save figure
-plt.savefig(
-    "pset_2/data/output/evolution_shares.png",
+fig.savefig(
+    output_dir / "event_study_plot.png",
     dpi=300,
     bbox_inches="tight"
 )
 
+plt.close(fig)
 
-# ==============================================================================
-# Exhibit 2 Evolution of vote shares by student type
-# ==============================================================================
+print(output_dir / "event_study_coefficients.csv")
+print(output_dir / "event_study_plot.png")
 
 
-# 1. Prepare survey data
-survey = survey_noodles.copy()
-survey = survey.loc[survey["Pick_Obs"].notna()].copy()
+# Market-share trends
+# --------------------------------------------------
+share_data = choice_noodles.copy()
 
-# Define student groups
-survey["Athlete_group"] = np.where(
-    survey["Athlete"].eq("Y"),
-    "Athletes",
-    "Non-athletes"
+# Identify gluten-free products
+share_data["GF"] = share_data["dish"].str.endswith("_gf")
+
+# --------------------------------------------------
+# Market shares by product category
+# --------------------------------------------------
+
+# Sum product shares within each university-year
+campus_year = (
+    share_data.groupby(["University", "year", "GF"], as_index=False)["Share"]
+      .sum()
+      .pivot(index=["University", "year"], columns="GF", values="Share")
+      .reset_index()
+      .rename(columns={False: "Traditional", True: "GF"})
 )
 
-survey["Graduate_group"] = np.where(
-    survey["Graduate"].eq("Y"),
-    "Graduate students",
-    "Undergraduates"
+campus_year[["Traditional", "GF"]] = (
+    campus_year[["Traditional", "GF"]].fillna(0)
 )
 
-# Identify observed GF choices
-survey["GlutenFree"] = (
-    survey["Pick_Obs"].astype(str).str.lower().str.endswith("_gf")
+campus_year["Total_Noodles"] = (
+    campus_year["Traditional"] + campus_year["GF"]
 )
 
-# 2. Calculate GF choice shares by year and student type
-athlete_trends = (
-    survey.groupby(["year", "Athlete_group"], as_index=False)
-    .agg(
-        gf_share=("GlutenFree", "mean"),
-        n=("GlutenFree", "size")
+# Average across universities for each year
+category_trends = (
+    campus_year.groupby("year")[
+        ["GF", "Traditional", "Total_Noodles"]
+    ]
+    .mean()
+    .reset_index()
+)
+
+# Plot category market shares over time
+plt.figure(figsize=(10, 6))
+
+for variable, label in [
+    ("GF", "Gluten-free noodles"),
+    ("Traditional", "Traditional noodles"),
+    ("Total_Noodles", "All noodles"),
+]:
+    plt.plot(
+        category_trends["year"],
+        category_trends[variable],
+        marker="o",
+        label=label
     )
+
+plt.axvline(2011, linestyle="--", color="gray", alpha=0.7)
+plt.axvline(2016, linestyle="--", color="gray", alpha=0.7)
+
+plt.text(2011, plt.ylim()[1] * 0.95, "YourNoodles GF", rotation=90,
+         va="top", ha="right", fontsize=9)
+plt.text(2016, plt.ylim()[1] * 0.95, "BestNoodles & AllNoodles GF",
+         rotation=90, va="top", ha="right", fontsize=9)
+
+plt.xlabel("Year")
+plt.ylabel("Average market share")
+plt.title("Market Shares by Product Category")
+plt.legend()
+plt.grid(alpha=0.25)
+plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+plt.tight_layout()
+
+
+plt.savefig(
+    output_dir / "market_shares_by_category.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+plt.close()
+
+# Save category market shares
+category_trends.to_csv(
+    output_dir / "market_shares_by_category.csv",
+    index=False
+)
+
+# --------------------------------------------------
+# Market shares by chain
+# --------------------------------------------------
+
+# Sum dish shares within each chain-university-year
+chain_campus_year = (
+    share_data.groupby(["chain", "University", "year"], as_index=False)
+      .agg(chain_share=("Share", "sum"))
+)
+
+# Average chain shares across universities
+chain_trends = (
+    chain_campus_year
+    .groupby(["chain", "year"], as_index=False)
+    .agg(mean_share=("chain_share", "mean"))
+)
+
+plt.figure(figsize=(10, 6))
+
+for chain, data in chain_trends.groupby("chain"):
+    plt.plot(
+        data["year"],
+        data["mean_share"],
+        marker="o",
+        label=chain
+    )
+
+plt.axvline(2011, linestyle="--", color="gray", alpha=0.7)
+plt.axvline(2016, linestyle="--", color="gray", alpha=0.7)
+
+plt.xlabel("Year")
+plt.ylabel("Average market share")
+plt.title("Market Shares by Noodle Chain")
+plt.legend()
+plt.grid(alpha=0.25)
+plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+plt.tight_layout()
+
+plt.savefig(
+    output_dir / "market_shares_by_chain.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+plt.close()
+
+# Save chain market shares
+chain_trends.to_csv(
+    output_dir / "market_shares_by_chain.csv",
+    index=False
+)
+
+# Save campus-level market shares, useful for further analysis
+campus_year.to_csv(
+    output_dir / "market_shares_by_campus_year.csv",
+    index=False
+)
+
+chain_campus_year.to_csv(
+    output_dir / "market_shares_by_chain_campus_year.csv",
+    index=False
+)
+
+
+# Combined market-share figure for the write-up
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+
+for variable, label in [
+    ("GF", "Gluten-free noodles"),
+    ("Traditional", "Traditional noodles"),
+    ("Total_Noodles", "All noodles"),
+]:
+    axes[0].plot(
+        category_trends["year"],
+        category_trends[variable],
+        marker="o",
+        label=label,
+    )
+
+for chain, data in chain_trends.groupby("chain"):
+    axes[1].plot(
+        data["year"],
+        data["mean_share"],
+        marker="o",
+        label=chain,
+    )
+
+for ax, title in zip(
+    axes,
+    ["A. By product category", "B. By noodle chain"],
+):
+    ax.axvline(2011, linestyle="--", color="gray", alpha=0.7)
+    ax.axvline(2016, linestyle="--", color="gray", alpha=0.7)
+    ax.set_title(title)
+    ax.set_xlabel("Year")
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.grid(alpha=0.25)
+    ax.legend(frameon=False)
+
+axes[0].set_ylabel("Average market share")
+fig.suptitle("Market Shares over Time")
+fig.tight_layout()
+fig.savefig(
+    output_dir / "market_shares_overview.png",
+    dpi=300,
+    bbox_inches="tight",
+)
+plt.close(fig)
+
+
+# Student-group heterogeneity
+# --------------------------------------------------
+survey = survey_noodles.copy()
+
+# Check coding before analysis
+print("Graduate categories:")
+print(survey["Graduate"].value_counts(dropna=False))
+
+print("\nAthlete categories:")
+print(survey["Athlete"].value_counts(dropna=False))
+
+# Indicator for observed gluten-free choices
+survey["GF_Obs"] = survey["Pick_Obs"].str.endswith("_gf").astype(int)
+
+# Athlete: Y = athlete, N = non-athlete
+survey["Athlete_D"] = np.where(
+    survey["Athlete"].eq("Y"), 1,
+    np.where(survey["Athlete"].eq("N"), 0, np.nan)
+)
+
+# Graduate: Y = graduate student; N and No = non-graduate student
+survey["Graduate_D"] = np.where(
+    survey["Graduate"].eq("Y"), 1,
+    np.where(survey["Graduate"].isin(["N", "No"]), 0, np.nan)
+)
+
+# Check recoding
+print("Graduate status after recoding:")
+print(survey["Graduate_D"].value_counts(dropna=False))
+
+
+# GF choice over time by student group
+# --------------------------------------------------
+
+# Athlete vs. non-athlete
+athlete_trends = (
+    survey.dropna(subset=["Athlete_D"])
+    .groupby(["year", "Athlete_D"], as_index=False)
+    .agg(gf_share=("GF_Obs", "mean"))
 )
 
 graduate_trends = (
-    survey.groupby(["year", "Graduate_group"], as_index=False)
-    .agg(
-        gf_share=("GlutenFree", "mean"),
-        n=("GlutenFree", "size")
-    )
+    survey.dropna(subset=["Graduate_D"])
+    .groupby(["year", "Graduate_D"], as_index=False)
+    .agg(gf_share=("GF_Obs", "mean"))
 )
 
-# 3. Plot trends
 fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
-
 panels = [
-    (
-        axes[0],
-        athlete_trends,
-        "Athlete_group",
-        ["Non-athletes", "Athletes"],
-        "A. By athlete status"
-    ),
-    (
-        axes[1],
-        graduate_trends,
-        "Graduate_group",
-        ["Undergraduates", "Graduate students"],
-        "B. By graduate status"
-    )
+    (axes[0], athlete_trends, "Athlete_D", "Athletes", "Non-athletes", "A. By athlete status"),
+    (axes[1], graduate_trends, "Graduate_D", "Graduate students", "Non-graduate students", "B. By graduate status"),
 ]
 
-for ax, trends, group_col, groups, title in panels:
-    for group in groups:
-        group_data = (
-            trends.loc[trends[group_col].eq(group)]
-            .sort_values("year")
-        )
+for ax, trends, group_col, group_one, group_zero, title in panels:
+    for group_value, label in [(0, group_zero), (1, group_one)]:
+        data = trends.loc[trends[group_col].eq(group_value)].sort_values("year")
+        ax.plot(data["year"], data["gf_share"], marker="o", label=label)
 
-        ax.plot(
-            group_data["year"],
-            group_data["gf_share"],
-            marker="o",
-            markersize=4,
-            linewidth=2,
-            label=group
-        )
-
-    # Mark market events
-    ax.axvline(
-        2010,
-        color="gray",
-        linestyle="--",
-        linewidth=1.2,
-        alpha=0.8
-    )
-
-    ax.axvline(
-        2016,
-        color="gray",
-        linestyle=":",
-        linewidth=1.4,
-        alpha=0.8
-    )
-
+    ax.axvline(2011, linestyle="--", color="gray", alpha=0.7)
+    ax.axvline(2016, linestyle="--", color="gray", alpha=0.7)
     ax.set_title(title)
     ax.set_xlabel("Year")
-    ax.set_xticks(sorted(survey["year"].unique()))
-    ax.tick_params(axis="x", rotation=45)
-    ax.set_ylim(0, 1)
-    ax.grid(axis="y", alpha=0.3)
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.grid(alpha=0.25)
     ax.legend(frameon=False)
 
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-
-axes[0].set_ylabel("Share choosing a gluten-free noodle dish")
-
-fig.suptitle(
-    "Gluten-Free Choices over Time by Student Type",
-    fontsize=13
-)
-
-plt.tight_layout()
-plt.show()
-
-# Save figure
-plt.savefig(
-    "pset_2/data/output/choices_bystudent.png",
+axes[0].set_ylabel("Share choosing GF")
+fig.suptitle("Observed Gluten-Free Choice by Student Status")
+fig.tight_layout()
+fig.savefig(
+    output_dir / "gf_choice_by_student_status.png",
     dpi=300,
     bbox_inches="tight"
 )
+plt.close(fig)
+
+athlete_trends.to_csv(
+    output_dir / "gf_choice_by_athlete_status.csv",
+    index=False
+)
+
+graduate_trends.to_csv(
+    output_dir / "gf_choice_by_graduate_status.csv",
+    index=False
+)
 
 
-# ==============================================================================
-# Exhibit 3 Price elasticities: choices + student survey + input-price data
-# ==============================================================================
+# --------------------------------------------------
+# Second-choice substitution by chain and category
+# --------------------------------------------------
 
-# The survey covers 2010--2020.  Aggregate it to the same university-year
-# market definition used in choice_noodles, then merge all three datasets.
-survey_market = (
-    survey_noodles.assign(
-        athlete=lambda x: x["Athlete"].eq("Y"),
-        graduate=lambda x: x["Graduate"].eq("Y"),
-        survey_gf_choice=lambda x: x["Pick_Obs"].str.endswith("_gf"),
-    )
-    .groupby(["coll", "year"], as_index=False)
+survey = survey_noodles.copy()
+
+survey["Obs_Category"] = np.where(
+    survey["Pick_Obs"].str.endswith("_gf", na=False),
+    "GF", "Traditional"
+)
+survey["Hyp_Category"] = np.where(
+    survey["Pick_Hyp"].str.endswith("_gf", na=False),
+    "GF", "Traditional"
+)
+
+valid = survey.dropna(
+    subset=["Chain_Obs", "Chain_Hyp", "Pick_Obs", "Pick_Hyp"]
+).copy()
+
+valid["Observed choice"] = (
+    valid["Chain_Obs"] + " - " + valid["Obs_Category"]
+)
+
+# Calculate the share choosing GF as the hypothetical second choice
+summary = (
+    valid.groupby("Observed choice")
     .agg(
-        survey_athlete_share=("athlete", "mean"),
-        survey_graduate_share=("graduate", "mean"),
-        survey_gf_choice_share=("survey_gf_choice", "mean"),
+        **{
+            "Second choice: GF (%)": (
+                "Hyp_Category",
+                lambda x: x.eq("GF").mean() * 100
+            ),
+            "N": ("Hyp_Category", "size")
+        }
     )
-    .rename(columns={"coll": "University"})
+    .reset_index()
 )
 
-college_market = college_year.rename(columns={"campus": "University"})
-
-elasticity_data = (
-    choice_noodles.loc[choice_noodles["year"].between(2010, 2020)].copy()
-    .merge(college_market, on=["University", "year"], how="inner", validate="many_to_one")
-    .merge(survey_market, on=["University", "year"], how="inner", validate="many_to_one")
+# Traditional share is the complement of GF share
+summary["Second choice: Traditional (%)"] = (
+    100 - summary["Second choice: GF (%)"]
 )
 
-# Number of GF alternatives available in each market captures their staged entry:
-# YN_gf from 2011 and AN_gf/BN_gf from 2016.
-gf_options = (
-    elasticity_data.assign(is_gf=elasticity_data["dish"].isin(GLUTEN_FREE_DISHES))
-    .groupby(["University", "year"], as_index=False)["is_gf"]
-    .sum()
-    .rename(columns={"is_gf": "gf_options"})
+summary = summary[
+    [
+        "Observed choice",
+        "Second choice: GF (%)",
+        "Second choice: Traditional (%)",
+        "N"
+    ]
+].round(1)
+
+print(summary.to_string(index=False))
+
+summary.to_csv(
+    output_dir / "second_choice_summary_by_chain.csv",
+    index=False
 )
-elasticity_data = elasticity_data.merge(
-    gf_options, on=["University", "year"], how="left", validate="many_to_one"
-)
-
-
-def estimate_log_elasticities(data: pd.DataFrame) -> pd.DataFrame:
-    """Estimate dish-specific log-log elasticities with market controls.
-
-    The dependent variable is log market share.  Thus, coefficients on log
-    price and the log input-price indexes are elasticities.  The GF-options
-    coefficient is an elasticity with respect to 1 + number of GF options.
-    """
-    variables = {
-        "Own price": "Price",
-        "Vegetable input": "VegPIDX",
-        "Wheat input": "WheatPIDX",
-        "Meat input": "MeatPIDX",
-        "Wage index": "WageIDX",
-        "Real-estate index": "ReEsIDX",
-        "GF options": "gf_options",
-    }
-    rows = []
-
-    for dish, dish_data in data.groupby("dish"):
-        log_x = np.column_stack(
-            [
-                np.log1p(dish_data[column].to_numpy())
-                if column == "gf_options"
-                else np.log(dish_data[column].to_numpy())
-                for column in variables.values()
-            ]
-        )
-        controls = np.column_stack(
-            [
-                np.ones(len(dish_data)),
-                dish_data["year"].to_numpy() - dish_data["year"].min(),
-                dish_data["survey_athlete_share"].to_numpy(),
-                dish_data["survey_graduate_share"].to_numpy(),
-                dish_data["survey_gf_choice_share"].to_numpy(),
-            ]
-        )
-        design = np.column_stack([log_x, controls])
-        coefficients, *_ = np.linalg.lstsq(
-            design, np.log(dish_data["Share"].to_numpy()), rcond=None
-        )
-        rows.append({"dish": dish, **dict(zip(variables, coefficients[:len(variables)]))})
-
-    return pd.DataFrame(rows).set_index("dish").sort_index()
-
-
-elasticity_table = estimate_log_elasticities(elasticity_data)
-print("\nEstimated elasticities (2010--2020):")
-print(elasticity_table.round(3))
-
-# Heatmap: red means a negative association; blue means a positive association.
-fig_heatmap, ax_heatmap = plt.subplots(figsize=(11, 6))
-limit = np.abs(elasticity_table.to_numpy()).max()
-image = ax_heatmap.imshow(
-    elasticity_table.to_numpy(), cmap="coolwarm", vmin=-limit, vmax=limit, aspect="auto"
-)
-ax_heatmap.set_xticks(range(len(elasticity_table.columns)), elasticity_table.columns, rotation=35, ha="right")
-ax_heatmap.set_yticks(range(len(elasticity_table.index)), elasticity_table.index)
-ax_heatmap.set_title("Estimated elasticities by noodle dish (2010--2020)")
-
-for row in range(elasticity_table.shape[0]):
-    for column in range(elasticity_table.shape[1]):
-        value = elasticity_table.iloc[row, column]
-        color = "white" if abs(value) > limit * 0.55 else "black"
-        ax_heatmap.text(column, row, f"{value:.2f}", ha="center", va="center", color=color)
-
-fig_heatmap.colorbar(image, ax=ax_heatmap, label="Elasticity estimate")
-fig_heatmap.tight_layout()
-
-# Show the original adoption chart and the elasticity heatmap together.
-plt.show()
-
-# Save figure
-plt.savefig(
-    "pset_2/data/output/raw_elasticities.png",
-    dpi=300,
-    bbox_inches="tight"
-)
-
-# ==============================================================================
-# Part 1: Pricing Equations
-# ==============================================================================
-
-# Variables in the first pricing regression
-dependent = "Price"
-regressors = ["SpicyIndex", "WheatContent", "Veg2meat", "Calories"]
-
-# Keep only observations with non-missing values in the regression variables
-reg_data = choice_noodles[[dependent] + regressors].dropna().copy()
-
-# OLS: Price_jmt = beta_0 + beta_1*SpicyIndex + ... + u_jmt
-X = sm.add_constant(reg_data[regressors])
-y = reg_data[dependent]
-
-# HC1 heteroskedasticity-robust standard errors
-model = sm.OLS(y, X).fit(cov_type="HC1")
-
-# Create a clean coefficient table
-ci = model.conf_int()
-table = pd.DataFrame({
-    "Variable": model.params.index,
-    "Coefficient": model.params.values,
-    "Robust SE (HC1)": model.bse.values,
-    "t-statistic": model.tvalues.values,
-    "p-value": model.pvalues.values,
-    "CI 95% lower": ci[0].values,
-    "CI 95% upper": ci[1].values,
-})
-
-# Add regression summary statistics
-summary = pd.DataFrame({
-    "Statistic": ["Observations", "R-squared", "Adjusted R-squared"],
-    "Value": [int(model.nobs), model.rsquared, model.rsquared_adj],
-})
-
-# Save tables for use in the .qmd
-table.to_csv("pset_2/data/output/pricing_regression_1_coefficients.csv", index=False)
-
-# Save a LaTeX table that can be included in the write-up
-latex_table = table[["Variable", "Coefficient", "Robust SE (HC1)", "p-value"]].copy()
-latex_table["Coefficient"] = latex_table["Coefficient"].map(lambda x: f"{x:.4f}")
-latex_table["Robust SE (HC1)"] = latex_table["Robust SE (HC1)"].map(lambda x: f"{x:.4f}")
-latex_table["p-value"] = latex_table["p-value"].map(lambda x: f"{x:.4f}")
-latex = latex_table.to_latex(
-    index=False,
-    escape=True,
-    caption="Pricing Regression 1: Price on Product Characteristics",
-    label="tab:pricing-regression-1",
-    column_format="lrrr",
-)
-("pset_2/data/output/pricing_regression_1.tex").write_text(latex, encoding="utf-8")
-
-
-print(model.summary())
