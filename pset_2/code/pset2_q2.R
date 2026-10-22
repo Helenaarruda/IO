@@ -18,7 +18,7 @@ dat <- dat |>
 ### OLS
 
 reg <- feols(
-  Share - Share0 ~ Price + SpicyIndex + WheatContent + Veg2meat + Calories | dish,
+  log(Share) - log(Share0) ~ Price + SpicyIndex + WheatContent + Veg2meat + Calories | dish,
   data = dat
 )
 
@@ -50,7 +50,7 @@ dat <- dat |>
   left_join(college_year, by = c("University" = "campus", "year"))
 
 reg_iv <- feols(
-  Share - Share0 ~ SpicyIndex + WheatContent + Veg2meat + Calories |
+  log(Share) - log(Share0) ~ SpicyIndex + WheatContent + Veg2meat + Calories |
     dish |
     Price ~ VegPIDX + WheatPIDX + MeatPIDX + WageIDX + ReEsIDX,
   data = dat
@@ -321,3 +321,257 @@ modelsummary(
   notes = "Standard errors in parentheses. * p < 0.10, ** p < 0.05, *** p < 0.01.",
   output = "output/welfare_gain_by_period.tex"
 )
+
+# ------------------------------------------------------------
+# 1. Calculate the dish-level elasticity matrix
+# ------------------------------------------------------------
+
+elasticity_matrix <- function(alpha, dat) {
+
+  dish_market <- dat |>
+    dplyr::summarise(
+      share_dish = sum(Share, na.rm = TRUE),
+      price_share = sum(Price * Share, na.rm = TRUE),
+      .by = c(University, year, dish)
+    )
+
+  dish_j <- dish_market |>
+    dplyr::transmute(
+      University, year,
+      dish_j = as.character(dish),
+      share_j = share_dish
+    )
+
+  dish_k <- dish_market |>
+    dplyr::transmute(
+      University, year,
+      dish_k = as.character(dish),
+      price_share_k = price_share
+    )
+
+  dplyr::inner_join(
+    dish_j, dish_k,
+    by = c("University", "year"),
+    relationship = "many-to-many"
+  ) |>
+    dplyr::mutate(
+      elasticity = dplyr::if_else(
+        dish_j == dish_k,
+        alpha * price_share_k * (1 - 1 / share_j),
+        alpha * price_share_k
+      )
+    ) |>
+    dplyr::summarise(
+      elasticity = mean(elasticity, na.rm = TRUE),
+      .by = c(dish_j, dish_k)
+    )
+}
+
+
+# ------------------------------------------------------------
+# 2. OLS and IV price sensitivities
+# ------------------------------------------------------------
+
+alpha_ols <- -unname(stats::coef(reg)[1])
+alpha_iv  <- -unname(stats::coef(reg_iv)[1])
+
+
+# ------------------------------------------------------------
+# 3. Define the three time periods
+# ------------------------------------------------------------
+
+periods <- list(
+  "Before 2011" = dplyr::filter(dat, year < 2011),
+  "2011–2015"   = dplyr::filter(dat, year >= 2011, year <= 2015),
+  "2016 onward"       = dplyr::filter(dat, year >= 2016)
+)
+
+
+# ------------------------------------------------------------
+# 4. Calculate all six elasticity matrices
+# ------------------------------------------------------------
+
+elast_all <- lapply(names(periods), function(period_name) {
+
+  d <- periods[[period_name]]
+
+  dplyr::bind_rows(
+    elasticity_matrix(alpha_ols, d) |>
+      dplyr::mutate(estimator = "OLS"),
+
+    elasticity_matrix(alpha_iv, d) |>
+      dplyr::mutate(estimator = "IV")
+  ) |>
+    dplyr::mutate(period = period_name)
+
+}) |>
+  dplyr::bind_rows()
+
+
+# ------------------------------------------------------------
+# 5. Prepare labels and a common color scale
+# ------------------------------------------------------------
+
+dish_order <- sort(unique(as.character(dat$dish)))
+dish_count <- length(dish_order)
+
+max_abs <- max(abs(elast_all$elasticity), na.rm = TRUE)
+if (!is.finite(max_abs) || max_abs == 0) max_abs <- 1
+
+elast_all <- elast_all |>
+  dplyr::mutate(
+    dish_j = factor(dish_j, levels = rev(dish_order)),
+    dish_k = factor(dish_k, levels = dish_order),
+    estimator = factor(estimator, levels = c("OLS", "IV")),
+
+    # Display one decimal; omit values that round to zero
+    label = ifelse(
+      is.na(elasticity) | round(elasticity, 1) == 0,
+      "",
+      sprintf("%.1f", elasticity)
+    ),
+
+    # White text on darker tiles, dark text on lighter tiles
+    label_color = ifelse(
+      abs(elasticity) >= 0.55 * max_abs,
+      "white",
+      "#263238"
+    )
+  )
+
+label_size <- if (dish_count <= 8) {
+  3.0
+} else if (dish_count <= 12) {
+  2.5
+} else {
+  2.0
+}
+
+
+# ------------------------------------------------------------
+# 6. Create a polished two-panel figure for each period
+# ------------------------------------------------------------
+
+make_elasticity_plot <- function(period_name) {
+
+  plot_data <- dplyr::filter(elast_all, period == period_name)
+
+  ggplot2::ggplot(
+    plot_data,
+    ggplot2::aes(x = dish_k, y = dish_j, fill = elasticity)
+  ) +
+    ggplot2::geom_tile(
+      color = "white",
+      linewidth = 0.3
+    ) +
+
+    # Numeric labels only where the rounded elasticity is nonzero
+    ggplot2::geom_text(
+      ggplot2::aes(label = label, color = label_color),
+      size = label_size,
+      show.legend = FALSE
+    ) +
+
+    # Subtle border around the own-price elasticities
+    ggplot2::geom_tile(
+      data = dplyr::filter(
+        plot_data,
+        as.character(dish_j) == as.character(dish_k)
+      ),
+      ggplot2::aes(x = dish_k, y = dish_j),
+      inherit.aes = FALSE,
+      fill = NA,
+      color = "grey35",
+      linewidth = 0.4
+    ) +
+
+    ggplot2::facet_wrap(~estimator, nrow = 1) +
+
+    ggplot2::scale_fill_gradient2(
+      low = "#B6534B",
+      mid = "#F7F5F0",
+      high = "#287A8A",
+      midpoint = 0,
+      limits = c(-max_abs, max_abs),
+      oob = scales::squish,
+      name = "Elasticity",
+      labels = scales::label_number(accuracy = 0.1)
+    ) +
+
+    ggplot2::scale_color_identity() +
+    ggplot2::scale_x_discrete(drop = FALSE) +
+    ggplot2::scale_y_discrete(drop = FALSE) +
+    ggplot2::coord_fixed() +
+
+    ggplot2::labs(
+      title = paste("Price Elasticities by Dish:", period_name),
+      subtitle = "Average across University–year markets",
+      x = "Price of dish k",
+      y = "Demand for dish j",
+      caption = paste(
+        "Diagonal cells: own-price elasticities.",
+        "Off-diagonal cells: cross-price elasticities.",
+        "Labels rounded to one decimal; rounded zeros omitted."
+      )
+    ) +
+
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(
+        face = "bold", size = 15
+      ),
+      plot.title.position = "plot",
+      plot.subtitle = ggplot2::element_text(color = "grey40"),
+      plot.caption = ggplot2::element_text(
+        color = "grey40", size = 8.5, hjust = 0
+      ),
+      strip.text = ggplot2::element_text(
+        face = "bold", size = 12
+      ),
+      strip.background = ggplot2::element_rect(
+        fill = "#EEF1F3", color = NA
+      ),
+      panel.grid = ggplot2::element_blank(),
+      panel.spacing = grid::unit(1.2, "lines"),
+      axis.text.x = ggplot2::element_text(
+        angle = 45, hjust = 1, size = 8
+      ),
+      axis.text.y = ggplot2::element_text(size = 8),
+      axis.title = ggplot2::element_text(face = "bold"),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_text(face = "bold"),
+      legend.key.width = grid::unit(2, "cm"),
+      plot.margin = ggplot2::margin(10, 12, 10, 10)
+    )
+}
+
+
+# ------------------------------------------------------------
+# 7. Generate and save the three figures
+# ------------------------------------------------------------
+
+plots <- lapply(names(periods), make_elasticity_plot)
+names(plots) <- names(periods)
+
+dir.create("output", showWarnings = FALSE, recursive = TRUE)
+
+file_stems <- c(
+  "Before 2011" = "before_2011",
+  "2011–2015"   = "2011_2015",
+  "2016 onward"       = "2016_plus"
+)
+
+fig_width  <- max(12, 0.55 * dish_count + 4)
+fig_height <- max(6.5, 0.45 * dish_count + 2.5)
+
+for (period_name in names(plots)) {
+  ggplot2::ggsave(
+    filename = paste0(
+      "output/elasticity_", file_stems[[period_name]], ".pdf"
+    ),
+    plot = plots[[period_name]],
+    width = fig_width,
+    height = fig_height,
+    units = "in"
+  )
+}

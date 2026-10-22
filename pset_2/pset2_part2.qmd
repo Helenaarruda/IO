@@ -47,12 +47,38 @@ Consumer surplus for a given scenario, at a given university and time, takes the
 $$
 \mathrm{CS} = \frac{1}{\alpha}\, \log\left(\sum_\ell e^{\delta_{\ell mt}}\right).
 $$
-We simulate a counterfactual where gluten-free options were never introduced. We assume that, in that world, prices and everything else would have remained constant. We create a function that takes in the data and a vector or parameters, and outputs the welfare of each university and time. For the counterfactual, we simply drop gluten-free alternatives.
+These can be easily computed by plugging in the $\widehat\delta$'s, which are the predicted values from the regressions. We simulate a counterfactual where gluten-free options were never introduced. We assume that, in that world, prices and everything else would have remained constant. We create a function that takes in the data and a vector or parameters, and outputs the welfare of each university and time. For the counterfactual, we simply drop gluten-free alternatives.
+
+We see, in the figure below, that, while the counterfactual consumer surplus remains flat, the actual estimated one has two increases. The first is in 2011, when gluten-free options started to be introduced, and the second in 2016, when more options became available. The same pattern holds for OLS and for IV, but the scale is different.
 
 ![Consumer welfare over time](output/welfare_over_time.pdf){width=95%}
 
 ![Welfare gains over time](output/welfare_gain_over_time.pdf){width=95%}
 
+Regressing the welfare gains on the characteristics of each university per year, we cannot find any heterogeneity depending on the type of student population.
+
 ```{=latex}
 \input{output/welfare_gain_by_period.tex}
 ```
+
+### 9.
+
+The elasticities implied by logit are
+$$
+\eta_{jk} = p_k\, \frac{\partial\log s_j}{\partial p_k} = p_k\,\frac{\partial}{\partial p_k}\left[\delta_{j} - \log \sum_\ell e^{\delta_\ell}\right].
+$$
+So, elasticities are
+$$
+\eta_{jk} = p_k\Big[-\alpha \mathbb{I}[j = k] + s_k\Big].
+$$
+They depend only on data and on our estimate $\widehat\alpha$. We compute the elasticity for each university and time, then average them out, using both the OLS and IV estimates. Below are our estimates of average elasticities, for the three time periods.
+
+![Price elasticities, before 2011](output/elasticity_before_2011.pdf){width=100%}
+
+![Price elasticities, 2011-2015](output/elasticity_2011_2015.pdf){width=100%}
+
+![Price elasticities, 2016 onward](output/elasticity_2016_plus.pdf){width=100%}
+
+Because the market is relatively evenly split and the logit elasticities depend only on market shares and not characteristics, most of the cross-price elasticities sit at around 0.1. This is not intuitive, as the gluten-free options should be closer substitutes among each other, for example. In terms of policy, this implies that the one company producting gluten-free noodles between 2011 and 2015 did not actually hold much market power, as consumers would be willing to easily substitute between gluten-free and gluten-containing dishes. Given this demand, a counterfactual where a single company became a monopolist of gluten-free options likely would not have a large spike in prices, as that would push consumers towards the other alternatives.
+
+### 10.
