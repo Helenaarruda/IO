@@ -1,0 +1,12 @@
+[project]
+name = "pset_2"
+r_version = ">=4.3"
+
+[dependencies]
+dplyr = "*"
+fixest = "*"
+ggplot2 = "*"
+modelsummary = "*"
+readr = "*"
+readxl = "*"
+tidyr = "*"

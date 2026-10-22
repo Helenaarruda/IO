@@ -6,8 +6,6 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-dir.create("output", showWarnings = FALSE, recursive = TRUE)
-
 # ============================================================
 # 1. Load and prepare data
 # ============================================================
@@ -376,7 +374,7 @@ ggplot2::ggsave(
 welfare_reg <- welfare |>
   dplyr::left_join(
     college_year,
-    by = c("University", "year")
+    by = c("University" = "campus", "year")
   )
 
 # 2011–2015

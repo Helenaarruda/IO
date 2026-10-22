@@ -1,0 +1,11 @@
+{
+  "positron.r.customBinaries": [
+    "/usr/bin/R"
+  ],
+  "positron.r.customRootFolders": [
+    "/home/igorr/.uvr/r-versions"
+  ],
+  "positron.r.interpreters.default": "/usr/bin/R",
+  "r.rpath.linux": "/usr/bin/R",
+  "r.rterm.linux": "/usr/bin/R"
+}
