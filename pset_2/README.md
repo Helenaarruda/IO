@@ -16,10 +16,12 @@ Make sure the provided data files are in `data/input/`.
 Run these commands from the project root:
 
 ```bash
+uvr run code/pset2_p0p1
 uvr run code/pset2_q2.R
 uvr run code/pset2_q2_nested.R
 uvr run code/pset_q2_nested_welfare.R
 uvr run code/pset_q2_three_nests.R
+uvr run code/Pset2_q3
 ```
 
 The scripts run in sequence. The process stops if any script fails.
