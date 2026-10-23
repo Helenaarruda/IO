@@ -9,6 +9,8 @@ dependencies = [
     "matplotlib>=3.11.2",
     "pandas",
     "scipy",
+    "statsmodels",
+    "xlrd",
 ]
 
 [tool.uv]

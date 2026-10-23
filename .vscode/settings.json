@@ -1,0 +1,11 @@
+{
+  "positron.r.customBinaries": [
+    "C:\\Program Files\\R\\R-4.4.1\\bin\\x64\\R.exe"
+  ],
+  "positron.r.customRootFolders": [
+    "C:\\Users\\helen\\.uvr\\r-versions"
+  ],
+  "positron.r.interpreters.default": "C:\\Program Files\\R\\R-4.4.1\\bin\\x64\\R.exe",
+  "r.rpath.windows": "C:\\Program Files\\R\\R-4.4.1\\bin\\x64\\R.exe",
+  "r.rterm.windows": "C:\\Program Files\\R\\R-4.4.1\\bin\\x64\\R.exe"
+}
