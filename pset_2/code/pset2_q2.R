@@ -6,9 +6,9 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-dir.create("output", showWarnings = FALSE, recursive = TRUE)
+dir.create("pset_2/output", showWarnings = FALSE, recursive = TRUE)
 
-dat <- readr::read_csv("data/input/choice_noodles.csv")
+dat <- readr::read_csv("pset_2/data/input/choice_noodles.csv")
 
 # constructing outside option
 
@@ -35,7 +35,7 @@ reg <- fixest::feols(
 # IV
 # ============================================================
 
-college_year <- readxl::read_xls("data/input/college-year.xls") |>
+college_year <- readxl::read_xls("pset_2/data/input/college-year.xls") |>
   dplyr::mutate(
     dplyr::across(year, as.numeric)
   )
@@ -144,7 +144,7 @@ fixest::etable(
   caption = "Demand Estimates",
   label = "tab:demand",
   tex = TRUE,
-  file = "output/part2_table.tex",
+  file = "pset_2/output/part2_table.tex",
   replace = TRUE,
   create_dirs = TRUE,
   digits = 3,

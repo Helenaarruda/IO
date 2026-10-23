@@ -8,7 +8,7 @@ library(ggplot2)
 # 1. Load data and construct the outside option
 # ============================================================
 
-dat <- readr::read_csv("data/input/choice_noodles.csv")
+dat <- readr::read_csv("pset_2/data/input/choice_noodles.csv")
 
 dat <- dat |>
   dplyr::mutate(
@@ -21,7 +21,7 @@ dat <- dat |>
 # 2. Load college-year data and merge
 # ============================================================
 
-college_year <- readxl::read_xls("data/input/college-year.xls") |>
+college_year <- readxl::read_xls("pset_2/data/input/college-year.xls") |>
   dplyr::mutate(
     dplyr::across(year, as.numeric)
   ) |>
@@ -179,7 +179,7 @@ fixest::etable(
   ),
 
   tex = TRUE,
-  file = "output/nested_logit_3nests.tex",
+  file = "pset_2/output/nested_logit_3nests.tex",
   replace = TRUE,
   create_dirs = TRUE,
   caption = "Nested Logit Demand: Three Nests",

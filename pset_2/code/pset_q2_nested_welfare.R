@@ -10,9 +10,9 @@ library(tidyr)
 # 1. Load and prepare data
 # ============================================================
 
-dat <- readr::read_csv("data/input/choice_noodles.csv")
+dat <- readr::read_csv("pset_2/data/input/choice_noodles.csv")
 
-college_year <- readxl::read_xls("data/input/college-year.xls") |>
+college_year <- readxl::read_xls("pset_2/data/input/college-year.xls") |>
   dplyr::mutate(
     dplyr::across(year, as.numeric)
   ) |>
