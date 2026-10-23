@@ -407,215 +407,155 @@ print("\nObservations by chain:")
 print(chain_panel.groupby("chain").size())
 
 
-# Create event-time indicators
-# Reference period: k = -1
-# Bin tails to retain all available years
-# ------------------------------------------------------------
+# ==============================================================================
+# Clean event study: YourNoodles (GF in 2011) vs. not-yet-treated chains
+# Window: years < 2016, i.e. before AllNoodles and BestNoodles adopt GF.
 
-event_bins = {
-    "event_le_m6": chain_panel["event_time"] <= -6,
-    "event_m5": chain_panel["event_time"] == -5,
-    "event_m4": chain_panel["event_time"] == -4,
-    "event_m3": chain_panel["event_time"] == -3,
-    "event_m2": chain_panel["event_time"] == -2,
-    "event_0": chain_panel["event_time"] == 0,
-    "event_p1": chain_panel["event_time"] == 1,
-    "event_p2": chain_panel["event_time"] == 2,
-    "event_p3": chain_panel["event_time"] == 3,
-    "event_p4": chain_panel["event_time"] == 4,
-    "event_ge_p5": chain_panel["event_time"] >= 5
+TREATED_CHAIN = "YourNoodles"
+TREATED_YEAR = 2011
+LAST_CLEAN_YEAR = 2015          # last year before AllNoodles/BestNoodles adoption
+CONTROL_CHAINS = ["AllNoodles", "BestNoodles"]
+
+clean = chain_panel.loc[
+    (chain_panel["year"] <= LAST_CLEAN_YEAR)
+    & (chain_panel["chain"].isin([TREATED_CHAIN] + CONTROL_CHAINS))
+].copy()
+
+clean["k"] = clean["year"] - TREATED_YEAR
+clean["is_treated_chain"] = (clean["chain"] == TREATED_CHAIN).astype(int)
+
+print("\nCLEAN WINDOW")
+print("Years:", clean["year"].min(), "-", clean["year"].max())
+print("Observations by chain:")
+print(clean.groupby("chain").size())
+print("Campuses with all 3 chains in every year:",
+      (clean.groupby(["University", "year"])["chain"].nunique() == 3).mean())
+
+
+clean_bins = {
+    "ev_le_m6": clean["k"] <= -6,
+    "ev_m5": clean["k"] == -5,
+    "ev_m4": clean["k"] == -4,
+    "ev_m3": clean["k"] == -3,
+    "ev_m2": clean["k"] == -2,
+    "ev_0": clean["k"] == 0,
+    "ev_p1": clean["k"] == 1,
+    "ev_p2": clean["k"] == 2,
+    "ev_p3": clean["k"] == 3,
+    "ev_p4": clean["k"] == 4,
 }
 
-for variable, condition in event_bins.items():
-    chain_panel[variable] = condition.astype(int)
+for variable, condition in clean_bins.items():
+    clean[variable] = (condition & (clean["is_treated_chain"] == 1)).astype(int)
 
-event_terms = list(event_bins.keys())
+clean_terms = list(clean_bins.keys())
+clean_labels = {
+    "ev_le_m6": "≤ -6", "ev_m5": "-5", "ev_m4": "-4", "ev_m3": "-3",
+    "ev_m2": "-2", "ev_0": "0", "ev_p1": "1", "ev_p2": "2",
+    "ev_p3": "3", "ev_p4": "4",
+}
 
-
-# Estimate reduced-form event-study regression
-# ------------------------------------------------------------
-
-formula = (
+clean_formula = (
     "chain_share ~ "
-    + " + ".join(event_terms)
+    + " + ".join(clean_terms)
     + " + C(chain) + C(University):C(year)"
 )
 
-event_model = smf.ols(
-    formula,
-    data=chain_panel
-).fit(
+clean_groups = pd.factorize(clean["University"])[0]
+
+clean_model = smf.ols(clean_formula, data=clean).fit(
     cov_type="cluster",
-    cov_kwds={"groups": chain_panel["University"]}
+    cov_kwds={"groups": clean_groups, "use_correction": True},
+    use_t=True,
 )
 
-print("\nEVENT-STUDY REGRESSION")
-print(f"Observations: {int(event_model.nobs)}")
-print(f"R-squared: {event_model.rsquared:.4f}")
+print("\nCLEAN-WINDOW EVENT STUDY")
+print(f"Observations: {int(clean_model.nobs)}")
+print(f"Clusters (campuses): {len(np.unique(clean_groups))}")
 
-# Pre-treatment coefficients
-pre_terms = [
-    "event_le_m6",
-    "event_m5",
-    "event_m4",
-    "event_m3",
-    "event_m2"
-]
+pre_clean = ["ev_le_m6", "ev_m5", "ev_m4", "ev_m3", "ev_m2"]
+post_clean = ["ev_0", "ev_p1", "ev_p2", "ev_p3", "ev_p4"]
 
-# Post-treatment coefficients
-post_terms = [
-    "event_0",
-    "event_p1",
-    "event_p2",
-    "event_p3",
-    "event_p4",
-    "event_ge_p5"
-]
+for label, terms in [("Pre-treatment", pre_clean), ("Post-treatment", post_clean)]:
+    restriction = ", ".join(f"{t} = 0" for t in terms)
+    res = clean_model.f_test(restriction)
+    print(f"{label} coefficients jointly zero: "
+          f"F = {float(np.asarray(res.fvalue).item()):.3f}, "
+          f"p = {float(np.asarray(res.pvalue).item()):.4f}")
 
-def joint_wald_test(model, terms):
-    restriction = ", ".join(f"{term} = 0" for term in terms)
-    result = model.f_test(restriction)
+ci = clean_model.conf_int()
 
-    print(f"F-statistic: {float(np.asarray(result.fvalue).item()):.3f}")
-    print(f"p-value: {float(np.asarray(result.pvalue).item()):.4f}")
+clean_results = pd.DataFrame([{
+    "Event time": clean_labels[v],
+    "Variable": v,
+    "Coefficient": clean_model.params[v],
+    "Standard error": clean_model.bse[v],
+    "p-value": clean_model.pvalues[v],
+    "CI 95% lower": ci.loc[v, 0],
+    "CI 95% upper": ci.loc[v, 1],
+} for v in clean_terms])
 
-print("Pre-treatment coefficients jointly equal to zero:")
-joint_wald_test(event_model, pre_terms)
-
-print("\nPost-treatment coefficients jointly equal to zero:")
-joint_wald_test(event_model, post_terms)
-
-# Extract event-study coefficients and confidence intervals
-# ------------------------------------------------------------
-
-event_labels = {
-    "event_le_m6": "≤ -6",
-    "event_m5": "-5",
-    "event_m4": "-4",
-    "event_m3": "-3",
-    "event_m2": "-2",
-    "event_0": "0",
-    "event_p1": "1",
-    "event_p2": "2",
-    "event_p3": "3",
-    "event_p4": "4",
-    "event_ge_p5": "≥ 5"
-}
-
-results = []
-
-for variable in event_terms:
-    ci_low, ci_high = event_model.conf_int().loc[variable]
-
-    results.append({
-        "Event time": event_labels[variable],
-        "Variable": variable,
-        "Coefficient": event_model.params[variable],
-        "Standard error": event_model.bse[variable],
-        "p-value": event_model.pvalues[variable],
-        "CI 95% lower": ci_low,
-        "CI 95% upper": ci_high
-    })
-
-event_results = pd.DataFrame(results)
-
-# Save coefficients for reporting
-event_results.to_csv(
-    output_dir / "event_study_coefficients.csv",
-    index=False
+clean_results.to_csv(
+    output_dir / "event_study_clean_window_coefficients.csv", index=False
 )
 
+# Insere a referência k = -1 entre -2 e 0
+plot_order = ["≤ -6", "-5", "-4", "-3", "-2", "-1 (ref.)",
+              "0", "1", "2", "3", "4"]
 
-# Plot event-study coefficients and 95% confidence intervals
-# ------------------------------------------------------------
-
-plot_labels = [
-    "≤ -6", "-5", "-4", "-3", "-2",
-    "-1 (ref.)", "0", "1", "2", "3", "4", "≥ 5"
-]
-
-# Insert the omitted reference period at zero
-plot_results = event_results.copy()
-
-reference_row = pd.DataFrame([{
-    "Event time": "-1 (ref.)",
-    "Variable": "reference",
-    "Coefficient": 0.0,
-    "Standard error": np.nan,
-    "p-value": np.nan,
-    "CI 95% lower": np.nan,
-    "CI 95% upper": np.nan
+ref_row = pd.DataFrame([{
+    "Event time": "-1 (ref.)", "Variable": "reference",
+    "Coefficient": 0.0, "Standard error": np.nan, "p-value": np.nan,
+    "CI 95% lower": np.nan, "CI 95% upper": np.nan,
 }])
 
-plot_results = pd.concat(
-    [plot_results, reference_row],
-    ignore_index=True
+plot_df = pd.concat([clean_results, ref_row], ignore_index=True)
+plot_df["order"] = plot_df["Event time"].map(
+    {lab: i for i, lab in enumerate(plot_order)}
 )
+plot_df = plot_df.sort_values("order").reset_index(drop=True)
 
-plot_results["order"] = plot_results["Event time"].map(
-    {label: i for i, label in enumerate(plot_labels)}
-)
-
-plot_results = plot_results.sort_values("order")
-
-x = np.arange(len(plot_results))
+x = np.arange(len(plot_df))
+est = (plot_df["Variable"] != "reference").to_numpy()
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
-# Confidence intervals for estimated coefficients
-estimated = plot_results["Variable"] != "reference"
-
 ax.errorbar(
-    x[estimated],
-    plot_results.loc[estimated, "Coefficient"],
+    x[est],
+    plot_df.loc[est, "Coefficient"],
     yerr=[
-        plot_results.loc[estimated, "Coefficient"]
-        - plot_results.loc[estimated, "CI 95% lower"],
-        plot_results.loc[estimated, "CI 95% upper"]
-        - plot_results.loc[estimated, "Coefficient"]
+        plot_df.loc[est, "Coefficient"] - plot_df.loc[est, "CI 95% lower"],
+        plot_df.loc[est, "CI 95% upper"] - plot_df.loc[est, "Coefficient"],
     ],
-    fmt="o",
-    capsize=4,
-    linewidth=1.3,
-    label="Estimate and 95% CI"
+    fmt="o", capsize=4, linewidth=1.3, label="Estimate and 95% CI",
 )
-
-# Reference period
-ref_idx = plot_results.index[
-    plot_results["Variable"] == "reference"
-][0]
-ref_x = plot_results.index.get_loc(ref_idx)
-
 ax.scatter(
-    ref_x, 0,
-    marker="D",
-    label="Reference period (k = -1)"
+    x[~est], plot_df.loc[~est, "Coefficient"],
+    marker="D", label="Reference period (k = -1)",
 )
 
+ref_pos = int(np.where(~est)[0][0])
 ax.axhline(0, linestyle="--", linewidth=1)
-ax.axvline(5.5, linestyle=":", linewidth=1)
+ax.axvline(ref_pos + 0.5, linestyle=":", linewidth=1)
 
 ax.set_xticks(x)
-ax.set_xticklabels(plot_results["Event time"])
-
-ax.set_xlabel("Years relative to GF introduction")
-ax.set_ylabel("Change in chain market share relative to k = -1")
-ax.set_title("Event Study: Noodle Market Share Around GF Introduction")
-
+ax.set_xticklabels(plot_df["Event time"])
+ax.set_xlabel("Years relative to YourNoodles GF introduction (2011)")
+ax.set_ylabel("Change in YourNoodles share relative to k = -1")
+ax.set_title(
+    "Event Study: YourNoodles vs. Not-Yet-Treated Chains (2011–2015)"
+)
 ax.grid(axis="y", alpha=0.25)
 ax.legend(frameon=False)
 fig.tight_layout()
-
 fig.savefig(
-    output_dir / "event_study_plot.png",
-    dpi=300,
-    bbox_inches="tight"
+    output_dir / "event_study_clean_window.png", dpi=300, bbox_inches="tight"
 )
-
 plt.close(fig)
 
-print(output_dir / "event_study_coefficients.csv")
-print(output_dir / "event_study_plot.png")
+print(output_dir / "event_study_clean_window_coefficients.csv")
+print(output_dir / "event_study_clean_window.png")
+
 
 
 # Market-share trends
