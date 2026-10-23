@@ -1,0 +1,176 @@
+{
+  "counterfactual": "Remove all gluten-free dishes, hold other prices/characteristics fixed",
+  "units": "price units per lunch choice",
+  "aggregation": "equal weight for each campus-year market",
+  "group_average": "each type equally averages over the same campus-year markets",
+  "models": {
+    "a": {
+      "2001-2010": {
+        "markets": 200,
+        "average": 0.0,
+        "by_type": {
+          "neither": 0.0,
+          "athlete_only": 0.0,
+          "graduate_only": 0.0,
+          "both": 0.0
+        }
+      },
+      "2011-2015": {
+        "markets": 100,
+        "average": 0.25557578936447795,
+        "by_type": {
+          "neither": 0.25557578936447795,
+          "athlete_only": 0.25557578936447795,
+          "graduate_only": 0.25557578936447795,
+          "both": 0.25557578936447795
+        }
+      },
+      "2016-2020": {
+        "markets": 100,
+        "average": 0.7049458735020119,
+        "by_type": {
+          "neither": 0.7049458735020119,
+          "athlete_only": 0.7049458735020119,
+          "graduate_only": 0.7049458735020119,
+          "both": 0.7049458735020119
+        }
+      },
+      "2011-2020": {
+        "markets": 200,
+        "average": 0.48026083143324483,
+        "by_type": {
+          "neither": 0.48026083143324483,
+          "athlete_only": 0.48026083143324483,
+          "graduate_only": 0.48026083143324483,
+          "both": 0.48026083143324483
+        }
+      }
+    },
+    "b": {
+      "2001-2010": {
+        "markets": 200,
+        "average": 0.0,
+        "by_type": {
+          "neither": 0.0,
+          "athlete_only": 0.0,
+          "graduate_only": 0.0,
+          "both": 0.0
+        }
+      },
+      "2011-2015": {
+        "markets": 100,
+        "average": 0.25739497219271595,
+        "by_type": {
+          "neither": 0.29165144278759236,
+          "athlete_only": 0.3347511476896916,
+          "graduate_only": 0.17034469911373823,
+          "both": 0.2214894770497977
+        }
+      },
+      "2016-2020": {
+        "markets": 100,
+        "average": 0.7075125139216979,
+        "by_type": {
+          "neither": 0.7592736673562903,
+          "athlete_only": 0.8795308581319123,
+          "graduate_only": 0.6069113400444549,
+          "both": 0.6055196097825248
+        }
+      },
+      "2011-2020": {
+        "markets": 200,
+        "average": 0.48245374305720695,
+        "by_type": {
+          "neither": 0.5254625550719413,
+          "athlete_only": 0.6071410029108022,
+          "graduate_only": 0.38862801957909654,
+          "both": 0.4135045434161613
+        }
+      }
+    },
+    "c": {
+      "2001-2010": {
+        "markets": 200,
+        "average": 0.0,
+        "by_type": {
+          "neither": 0.0,
+          "athlete_only": 0.0,
+          "graduate_only": 0.0,
+          "both": 0.0
+        }
+      },
+      "2011-2015": {
+        "markets": 100,
+        "average": 0.24887897187425398,
+        "by_type": {
+          "neither": 0.29198233047208183,
+          "athlete_only": 0.28448178806183416,
+          "graduate_only": 0.18517484452228536,
+          "both": 0.21788875482037845
+        }
+      },
+      "2016-2020": {
+        "markets": 100,
+        "average": 0.6845979910070773,
+        "by_type": {
+          "neither": 0.7809363341312952,
+          "athlete_only": 0.6759733129389022,
+          "graduate_only": 0.6391140554541296,
+          "both": 0.6031584093458673
+        }
+      },
+      "2011-2020": {
+        "markets": 200,
+        "average": 0.46673848144066565,
+        "by_type": {
+          "neither": 0.5364593323016884,
+          "athlete_only": 0.48022755050036814,
+          "graduate_only": 0.41214444998820743,
+          "both": 0.41052358208312284
+        }
+      }
+    },
+    "d": {
+      "2001-2010": {
+        "markets": 200,
+        "average": 0.0,
+        "by_type": {
+          "neither": 0.0,
+          "athlete_only": 0.0,
+          "graduate_only": 0.0,
+          "both": 0.0
+        }
+      },
+      "2011-2015": {
+        "markets": 100,
+        "average": 0.23909785598066974,
+        "by_type": {
+          "neither": 0.28330145151817165,
+          "athlete_only": 0.2510503610989053,
+          "graduate_only": 0.1958825615178086,
+          "both": 0.20973764611234175
+        }
+      },
+      "2016-2020": {
+        "markets": 100,
+        "average": 0.6660255279252302,
+        "by_type": {
+          "neither": 0.763153890295221,
+          "athlete_only": 0.6165854049541949,
+          "graduate_only": 0.6639346989261462,
+          "both": 0.5795368126880969
+        }
+      },
+      "2011-2020": {
+        "markets": 200,
+        "average": 0.45256169195294993,
+        "by_type": {
+          "neither": 0.5232276709066963,
+          "athlete_only": 0.43381788302655006,
+          "graduate_only": 0.42990863022197745,
+          "both": 0.3946372294002194
+        }
+      }
+    }
+  }
+}
