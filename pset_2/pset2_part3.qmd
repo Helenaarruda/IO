@@ -1,12 +1,12 @@
 ### 12. Models with Random Coefficients
 
-We estimate the four specifications in using the 2,800 product observations from 400 campus year markets. As copied from Part II.5, the normalized utility is
+We estimate the four specifications in Question 12 using the 2,800 product observations from 400 campus year markets. As in Part II.5, normalized utility is
 
 $$
 u_{ijmt}=\alpha p_{jmt}+\mu_j+x_{jmt}'\beta_i+\xi_{jmt}+\epsilon_{ijmt},\qquad \alpha<0,
 $$
 
-where $x_{jmt}$ contains spicy index, wheat content, vegetable to meat ratio, and calories, and $\epsilon_{ijmt}$ is standard type-I extreme value as assumed. The outside option has zero normalized utility. We estimate
+where $x_{jmt}$ contains spicy index, wheat content, vegetable to meat ratio, and calories, and $\epsilon_{ijmt}$ is standard type-I extreme value. The outside option has zero normalized utility. We estimate
 
 $$
 \begin{aligned}
@@ -19,9 +19,9 @@ $$
 
 where model (d) allows correlations among wheat, veg/meat, and calorie tastes but not with spicy tastes. We use the exact mean structure specified in the question, without adding a common mean to models (b)--(d). Since the campus year data contain only the marginal shares of athletes and graduate students, we assume independence between these two statuses within markets.
 
-Following Berry, Levinsohn, and Pakes (1995) and Nevo (2000, 2001), we invert simulated choice shares to recover market mean utilities and estimate linear coefficients by IV within the two step GMM. IV consist of exogenous characteristics, dish indicators, local cost indices, cost characteristic interactions, and other products' characteristics (31 independent columns). We approximate the distribution of consumer preferences using 512 fixed simulation draws. The recovered mean utilities match the observed shares to numerical precision.
+Following Berry, Levinsohn, and Pakes (1995) and Nevo (2000, 2001), we invert simulated choice shares to recover market mean utilities and estimate linear coefficients by IV within two step GMM. Instruments consist of exogenous characteristics, dish indicators, local cost indices, cost characteristic interactions, and other products' characteristics (31 independent columns). We use 512 fixed simulation draws for normally distributed tastes. The recovered mean utilities match the observed shares to numerical precision.
 
-**Table III.1. Price coefficients, mean preferences, taste standard deviatin**
+**Table III.1. Price coefficients, mean preferences, taste standard deviations**
 
 | Parameter     |  \(a\) |  \(b\) |  \(c\) |  \(d\) |
 |:--------------|-------:|-------:|-------:|-------:|
@@ -35,10 +35,10 @@ Following Berry, Levinsohn, and Pakes (1995) and Nevo (2000, 2001), we invert si
 | SD veg/meat   |  0.591 |     -- |  0.847 |  0.662 |
 | SD calories   |  0.001 |     -- |  0.004 |  0.208 |
 
-**Table III.2. Athlete and graduate mean taste coefficients**
+**Table III.2. Athlete and graduate mean taste coefficient**
 
 | Characteristic | \(b\) Athlete | \(b\) Grad | \(c\) Athlete | \(c\) Grad | \(d\) Athlete | \(d\) Grad |
-|:---|---:|---:|---:|---:|---:|---:|
+|:----------|----------:|----------:|----------:|----------:|----------:|----------:|
 | Spicy | 0.006 | 0.039 | -0.606 | 0.566 | -0.638 | 0.548 |
 | Wheat | 0.234 | 0.305 | 0.164 | 0.400 | 0.352 | 0.240 |
 | Veg/meat | -1.327 | 1.539 | -0.316 | 0.507 | -0.463 | 0.576 |
@@ -56,9 +56,9 @@ $$
 \end{pmatrix}.
 $$
 
-Its wheat--veg/meat correlation is approximately one, and the other two correlations are about $0.9998$. This covariance is numerically singular, so the individual correlations are not reliably identified even though the optimization converged.
+Its wheat veg/meat correlation is approximately one, and the other two correlations are about $0.9998$. This covariance is numerically singular, so the individual correlations are not reliably identified even though the optimization converged.
 
-### 13. Welfare Effects of Gluten-Free Options
+### 13. Welfare effects of Gluten Free options
 
 We measure the compensating variation from introducing gluten free dishes by comparing the observed choice set $\mathcal J_{mt}$ with $\mathcal J_{mt}\setminus GF$, keeping the other prices and characteristics fixed. For student type $h$ and random taste draw $r$,
 
@@ -81,7 +81,7 @@ We average across taste draws, demographic weights, and campus years. Welfare is
 | 2016--2020 | 0.705 | 0.708 | 0.685 | 0.666 |
 | 2011--2020 | 0.480 | 0.482 | 0.467 | 0.453 |
 
-**Table III.4. Welfare gain by student type time period 2011 – 2020**
+**Table III.4. Welfare gain by student type, 2011--2020**
 
 | Student type  | \(a\) | \(b\) | \(c\) | \(d\) |
 |:--------------|------:|------:|------:|------:|
@@ -90,8 +90,239 @@ We average across taste draws, demographic weights, and campus years. Welfare is
 | Graduate only | 0.480 | 0.389 | 0.412 | 0.430 |
 | Both          | 0.480 | 0.414 | 0.411 | 0.395 |
 
-The welfare gain is zero before gluten free entry, and positive under every model after entry. Gains are larger in 2016--2020, when all three chains offered gluten-free dishes, though changes across periods also reflect other market changes. Model (a) implies no demographic differences. In (b) throuhg (d), the group specific gains vary more than aggregate welfare, suggesting that the distribution of benefits depend on how preferences are modeled. These are fixed price counterfactuals, not equilibrium welfare changes.
+The welfare gain is zero before gluten free entry, and positive under every model after entry. Gains are larger in 2016--2020, when all three chains offered gluten free dishes, though changes across periods also reflect other market changes. Model (a) implies no demographic differences. In (b)--(d), the group specific gains vary more than aggregate welfare, suggesting that the distribution of benefits depends on how preferences are modeled. These are fixed price counterfactuals, not equilibrium welfare changes. Compared with Part II.8, the random coefficient welfare estimates are closer to the IV results than the OLS results. The Part II welfare plots imply average gains of approximately 0.34 (OLS) and 0.27 (IV) in 2011--2015, and 0.90 (OLS) and 0.70 (IV) in 2016--2020. The corresponding ranges across our four models are 0.239--0.257 and 0.666--0.708. The nested logit OLS results in Part II.10 are also close to simple-logit OLS, at roughly 0.34 and 0.89. However, the nested logit IV estimates have a nesting parameter close to zero, so they provide little evidence for a different welfare prediction. Part II finds no significant athlete share association with welfare gains, but a weak positive graduate share association after 2016. Our models allow welfare to vary directly with student type, and show that the ranking of group level gains depends on the taste specification. The magnitudes are not perfectly comparable: Part II computes welfare from fitted mean utilities, while we use utilities recovered by share inversion, including estimated unobserved product quality.
 
-### 14. Recommendation
+### 14. Normal vs Finite Type Heterogeneity
 
-Models (a) and (c) estimate near zero standard deviations for some tastes, while the covariance in (d) is numerically singular. Thus, the flexible normal distribution in (d) appears difficult to identify with only aggregate shares. Finite consumer types, as in Berry, Carnall, and Spiller (1996), could capture distinct dietary preferences without imposing a smooth normal distribution. However the thing is, our results alone do not show that a finite type model fits better, as we have not estimated one. We would use the simpler diagonal normal model (c) as our main continuous heterogeneity specification and consider finite types as an alternative once there is more individual level information. The average welfare estimates are quite stable across the four models, but the group specific gains are less so.
+Models (a) and (c) estimate near zero standard deviations for some tastes, while the covariance in (d) is numerically singular. Thus, the flexible normal distribution in (d) appears difficult to identify with only aggregate shares. Finite consumer types could capture distinct dietary preferences without imposing a smooth normal distribution. However, our results alone do not show that a finite type model fits better, as we have not estimated one. We would use the simpler diagonal normal model (c) as our main continuous heterogeneity specification and consider finite types as an alternative once there is more individual level information. The average welfare estimates are quite stable across the four models, but the group specific gains are less so.
+
+### 15. Price Elasticities and Competition
+
+Using the estimates in Question 12, we calculate market level own price and cross price elasticities and then average each entry across campus years in the three product availability periods. With a common price coefficient $\alpha$, the simulated elasticity is
+
+$$
+\eta_{jk,mt}=\frac{\hat\alpha p_{kmt}}{\hat s_{jmt}}
+\left[
+\mathbf 1\{j=k\}\hat s_{jmt}
+-\sum_h w_{h,mt}\frac{1}{R}\sum_{r=1}^R
+P_{jrhmt}P_{krhmt}
+\right].
+$$
+
+The resulting matrices are $6\times6$ (2001--2010), $7\times7$ (2011--2015), and $9\times9$ (2016--2020). Rows identify the dish whose demand changes and columns the dish whose price changes. Diagonal elasticities are negative and off diagonal elasticities are positive. In 2016--2020, mean own price elasticities range from $-0.902$ to $-0.965$ across models (a)--(d), while mean cross price elasticities range from $0.058$ to $0.063$. Diversion from one gluten free dish toward the other two is about 32.9%--35.0%.
+
+An acquisition of all gluten free dishes by a new firm would internalize their cross product substitution and could soften competition between these dishes. But the original chains would also lose ownership of their gluten free offerings, which changes their pricing incentives. These demand elasticoties by themselves cannot establish the final price or welfare effect without marginal costs and a supply model.
+
+The Part II.9 simple-logit IV estimates imply mean own price elasticities of approximately $-0.82$, $-0.85$, and $-0.89$ across the three periods, compared with $-0.83$ to $-0.88$, $-0.86$ to $-0.92$, and $-0.90$ to $-0.97$ here. The corresponding mean cross price elasticities under logit IV are about 0.098, 0.077, and 0.057, compared with 0.099--0.106, 0.078--0.083, and 0.058--0.063 under our models. Thus, the RC models imply somewhat stronger price responses but similar overall substitution. Unlike simple logit, they allow substitution to vary with student preferences, although the estimated diversion between gluten free dishes is still close to one third. The nested logit estimates in Part II.10 do not change this conclusion much: the OLS nesting parameter is 0.355, but the IV estimates are close to zero. We therefore would not predict a large difference in merger incentives solely from the choice of demand model. Any actual equilibrium price effect still depends on costs and product ownership.
+
+The full period specific matrices are reported below.
+
+**Model (a), 2001-2010: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_lm` | `YN_slm` |
+|:----------------|:-------:|:--------:|:-------:|:--------:|:-------:|:--------:|
+| `AN_lm`         | -0.741  |  0.086   |  0.116  |  0.150   |  0.080  |  0.073   |
+| `AN_slm`        |  0.084  |  -0.577  |  0.115  |  0.159   |  0.078  |  0.079   |
+| `BN_lm`         |  0.087  |  0.087   | -1.030  |  0.156   |  0.080  |  0.076   |
+| `BN_slm`        |  0.084  |  0.091   |  0.117  |  -0.920  |  0.079  |  0.079   |
+| `YN_lm`         |  0.088  |  0.087   |  0.118  |  0.155   | -1.014  |  0.076   |
+| `YN_slm`        |  0.084  |  0.091   |  0.116  |  0.160   |  0.078  |  -0.760  |
+
+**Model (b), 2001-2010: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_lm` | `YN_slm` |
+|:----------------|:-------:|:--------:|:-------:|:--------:|:-------:|:--------:|
+| `AN_lm`         | -0.717  |  0.075   |  0.121  |  0.137   |  0.087  |  0.065   |
+| `AN_slm`        |  0.074  |  -0.572  |  0.113  |  0.166   |  0.074  |  0.082   |
+| `BN_lm`         |  0.091  |  0.086   | -1.028  |  0.152   |  0.080  |  0.074   |
+| `BN_slm`        |  0.077  |  0.094   |  0.114  |  -0.915  |  0.076  |  0.081   |
+| `YN_lm`         |  0.096  |  0.083   |  0.118  |  0.149   | -1.010  |  0.073   |
+| `YN_slm`        |  0.076  |  0.095   |  0.113  |  0.166   |  0.075  |  -0.756  |
+
+**Model (c), 2001-2010: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_lm` | `YN_slm` |
+|:----------------|:-------:|:--------:|:-------:|:--------:|:-------:|:--------:|
+| `AN_lm`         | -0.741  |  0.076   |  0.133  |  0.127   |  0.096  |  0.066   |
+| `AN_slm`        |  0.075  |  -0.588  |  0.110  |  0.182   |  0.073  |  0.087   |
+| `BN_lm`         |  0.100  |  0.084   | -1.057  |  0.149   |  0.090  |  0.075   |
+| `BN_slm`        |  0.071  |  0.103   |  0.112  |  -0.928  |  0.073  |  0.089   |
+| `YN_lm`         |  0.106  |  0.082   |  0.133  |  0.143   | -1.039  |  0.074   |
+| `YN_slm`        |  0.077  |  0.102   |  0.115  |  0.181   |  0.076  |  -0.781  |
+
+**Model (d), 2001-2010: average elasticity matrix.\\**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_lm` | `YN_slm` |
+|:----------------|:-------:|:--------:|:-------:|:--------:|:-------:|:--------:|
+| `AN_lm`         | -0.773  |  0.078   |  0.147  |  0.123   |  0.104  |  0.068   |
+| `AN_slm`        |  0.076  |  -0.611  |  0.108  |  0.204   |  0.072  |  0.093   |
+| `BN_lm`         |  0.111  |  0.083   | -1.089  |  0.140   |  0.104  |  0.077   |
+| `BN_slm`        |  0.069  |  0.116   |  0.105  |  -0.936  |  0.069  |  0.099   |
+| `YN_lm`         |  0.115  |  0.081   |  0.153  |  0.135   | -1.076  |  0.076   |
+| `YN_slm`        |  0.079  |  0.108   |  0.117  |  0.200   |  0.078  |  -0.814  |
+
+**Model (a), 2011-2015: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:--------|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+| `AN_lm`         | -0.881  |  0.067   |  0.096  |  0.115   |  0.064  |  0.065  |  0.063   |
+| `AN_slm`        |  0.072  |  -0.591  |  0.094  |  0.123   |  0.064  |  0.063  |  0.067   |
+| `BN_lm`         |  0.075  |  0.069   | -1.096  |  0.121   |  0.062  |  0.065  |  0.066   |
+| `BN_slm`        |  0.072  |  0.072   |  0.096  |  -0.967  |  0.062  |  0.064  |  0.068   |
+| `YN_gf`         |  0.075  |  0.069   |  0.093  |  0.115   | -0.417  |  0.063  |  0.064   |
+| `YN_lm`         |  0.076  |  0.068   |  0.097  |  0.119   |  0.063  | -1.058  |  0.065   |
+| `YN_slm`        |  0.072  |  0.072   |  0.096  |  0.124   |  0.063  |  0.063  |  -1.066  |
+
+**Model (b), 2011-2015: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:--------|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+| `AN_lm`         | -0.863  |  0.058   |  0.098  |  0.102   |  0.068  |  0.071  |  0.056   |
+| `AN_slm`        |  0.061  |  -0.582  |  0.093  |  0.132   |  0.059  |  0.059  |  0.073   |
+| `BN_lm`         |  0.076  |  0.068   | -1.096  |  0.119   |  0.063  |  0.065  |  0.065   |
+| `BN_slm`        |  0.064  |  0.077   |  0.094  |  -0.960  |  0.060  |  0.060  |  0.072   |
+| `YN_gf`         |  0.081  |  0.064   |  0.094  |  0.110   | -0.415  |  0.066  |  0.061   |
+| `YN_lm`         |  0.083  |  0.064   |  0.098  |  0.113   |  0.066  | -1.055  |  0.062   |
+| `YN_slm`        |  0.063  |  0.078   |  0.094  |  0.130   |  0.060  |  0.060  |  -1.061  |
+
+**Model (c), 2011-2015: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:--------|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+| `AN_lm`         | -0.891  |  0.058   |  0.109  |  0.097   |  0.069  |  0.078  |  0.057   |
+| `AN_slm`        |  0.061  |  -0.601  |  0.090  |  0.145   |  0.063  |  0.058  |  0.077   |
+| `BN_lm`         |  0.085  |  0.066   | -1.127  |  0.116   |  0.065  |  0.073  |  0.066   |
+| `BN_slm`        |  0.060  |  0.085   |  0.092  |  -0.977  |  0.061  |  0.058  |  0.078   |
+| `YN_gf`         |  0.082  |  0.068   |  0.097  |  0.112   | -0.428  |  0.067  |  0.064   |
+| `YN_lm`         |  0.091  |  0.063   |  0.110  |  0.109   |  0.067  | -1.086  |  0.062   |
+| `YN_slm`        |  0.065  |  0.082   |  0.094  |  0.143   |  0.063  |  0.061  |  -1.099  |
+
+**Model (d), 2011-2015: average elasticity matrix**
+
+| $j\backslash k$ | `AN_lm` | `AN_slm` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:--------|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+| `AN_lm`         | -0.929  |  0.060   |  0.122  |  0.093   |  0.070  |  0.086  |  0.060   |
+| `AN_slm`        |  0.063  |  -0.626  |  0.088  |  0.161   |  0.068  |  0.056  |  0.081   |
+| `BN_lm`         |  0.096  |  0.064   | -1.163  |  0.109   |  0.065  |  0.087  |  0.067   |
+| `BN_slm`        |  0.058  |  0.094   |  0.086  |  -0.996  |  0.065  |  0.055  |  0.086   |
+| `YN_gf`         |  0.083  |  0.074   |  0.097  |  0.119   | -0.446  |  0.067  |  0.067   |
+| `YN_lm`         |  0.101  |  0.062   |  0.129  |  0.103   |  0.066  | -1.126  |  0.064   |
+| `YN_slm`        |  0.068  |  0.087   |  0.097  |  0.156   |  0.066  |  0.062  |  -1.146  |
+
+**Model (a), 2016-2020: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_gf` | `AN_lm` | `AN_slm` | `BN_gf` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:-------|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+| `AN_gf` | -0.552 | 0.052 | 0.055 | 0.051 | 0.065 | 0.088 | 0.057 | 0.045 | 0.051 |
+| `AN_lm` | 0.058 | -1.024 | 0.051 | 0.054 | 0.066 | 0.085 | 0.057 | 0.046 | 0.048 |
+| `AN_slm` | 0.063 | 0.053 | -0.965 | 0.051 | 0.065 | 0.089 | 0.057 | 0.045 | 0.051 |
+| `BN_gf` | 0.059 | 0.056 | 0.050 | -0.420 | 0.064 | 0.082 | 0.058 | 0.045 | 0.047 |
+| `BN_lm` | 0.060 | 0.055 | 0.053 | 0.051 | -1.465 | 0.090 | 0.056 | 0.047 | 0.050 |
+| `BN_slm` | 0.062 | 0.053 | 0.055 | 0.050 | 0.068 | -1.109 | 0.056 | 0.046 | 0.052 |
+| `YN_gf` | 0.061 | 0.055 | 0.052 | 0.053 | 0.064 | 0.084 | -0.570 | 0.045 | 0.048 |
+| `YN_lm` | 0.060 | 0.056 | 0.052 | 0.052 | 0.067 | 0.088 | 0.056 | -1.045 | 0.050 |
+| `YN_slm` | 0.062 | 0.053 | 0.055 | 0.050 | 0.067 | 0.091 | 0.056 | 0.046 | -1.009 |
+
+**Model (b), 2016-2020: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_gf` | `AN_lm` | `AN_slm` | `BN_gf` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:-------|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+| `AN_gf` | -0.546 | 0.046 | 0.060 | 0.044 | 0.066 | 0.096 | 0.054 | 0.043 | 0.055 |
+| `AN_lm` | 0.051 | -1.016 | 0.044 | 0.063 | 0.065 | 0.076 | 0.061 | 0.048 | 0.043 |
+| `AN_slm` | 0.070 | 0.046 | -0.958 | 0.044 | 0.066 | 0.096 | 0.054 | 0.043 | 0.055 |
+| `BN_gf` | 0.049 | 0.066 | 0.042 | -0.408 | 0.064 | 0.072 | 0.061 | 0.048 | 0.041 |
+| `BN_lm` | 0.061 | 0.054 | 0.054 | 0.051 | -1.465 | 0.089 | 0.056 | 0.046 | 0.050 |
+| `BN_slm` | 0.068 | 0.048 | 0.059 | 0.044 | 0.067 | -1.104 | 0.054 | 0.044 | 0.055 |
+| `YN_gf` | 0.058 | 0.058 | 0.050 | 0.056 | 0.065 | 0.081 | -0.568 | 0.046 | 0.047 |
+| `YN_lm` | 0.057 | 0.058 | 0.049 | 0.056 | 0.066 | 0.083 | 0.058 | -1.044 | 0.048 |
+| `YN_slm` | 0.068 | 0.047 | 0.060 | 0.044 | 0.067 | 0.096 | 0.054 | 0.044 | -1.005 |
+
+**Model (c), 2016-2020: average elasticity matrix.**
+
+| $j\backslash k$ | `AN_gf` | `AN_lm` | `AN_slm` | `BN_gf` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:-------|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+| `AN_gf` | -0.565 | 0.047 | 0.062 | 0.050 | 0.063 | 0.100 | 0.058 | 0.043 | 0.056 |
+| `AN_lm` | 0.052 | -1.045 | 0.044 | 0.061 | 0.075 | 0.071 | 0.063 | 0.056 | 0.044 |
+| `AN_slm` | 0.072 | 0.046 | -0.992 | 0.049 | 0.064 | 0.105 | 0.057 | 0.043 | 0.058 |
+| `BN_gf` | 0.057 | 0.063 | 0.048 | -0.431 | 0.067 | 0.076 | 0.062 | 0.049 | 0.045 |
+| `BN_lm` | 0.059 | 0.063 | 0.052 | 0.054 | -1.511 | 0.088 | 0.059 | 0.053 | 0.051 |
+| `BN_slm` | 0.071 | 0.045 | 0.064 | 0.047 | 0.066 | -1.131 | 0.054 | 0.043 | 0.060 |
+| `YN_gf` | 0.062 | 0.060 | 0.052 | 0.057 | 0.067 | 0.082 | -0.588 | 0.048 | 0.048 |
+| `YN_lm` | 0.057 | 0.067 | 0.048 | 0.056 | 0.076 | 0.081 | 0.060 | -1.075 | 0.049 |
+| `YN_slm` | 0.069 | 0.049 | 0.062 | 0.048 | 0.067 | 0.104 | 0.056 | 0.045 | -1.041 |
+
+**Model (d), 2016-2020: average elasticity matrix**
+
+| $j\backslash k$ | `AN_gf` | `AN_lm` | `AN_slm` | `BN_gf` | `BN_lm` | `BN_slm` | `YN_gf` | `YN_lm` | `YN_slm` |
+|:-------|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+| `AN_gf` | -0.592 | 0.049 | 0.064 | 0.057 | 0.063 | 0.106 | 0.061 | 0.043 | 0.058 |
+| `AN_lm` | 0.054 | -1.084 | 0.045 | 0.055 | 0.091 | 0.068 | 0.065 | 0.066 | 0.046 |
+| `AN_slm` | 0.075 | 0.047 | -1.036 | 0.056 | 0.063 | 0.115 | 0.059 | 0.043 | 0.061 |
+| `BN_gf` | 0.065 | 0.057 | 0.054 | -0.443 | 0.060 | 0.087 | 0.066 | 0.043 | 0.049 |
+| `BN_lm` | 0.059 | 0.077 | 0.051 | 0.048 | -1.561 | 0.082 | 0.060 | 0.068 | 0.054 |
+| `BN_slm` | 0.075 | 0.043 | 0.070 | 0.054 | 0.062 | -1.163 | 0.056 | 0.041 | 0.065 |
+| `YN_gf` | 0.065 | 0.062 | 0.055 | 0.061 | 0.069 | 0.085 | -0.614 | 0.049 | 0.051 |
+| `YN_lm` | 0.057 | 0.080 | 0.048 | 0.050 | 0.096 | 0.077 | 0.061 | -1.111 | 0.052 |
+| `YN_slm` | 0.071 | 0.051 | 0.065 | 0.053 | 0.070 | 0.114 | 0.058 | 0.048 | -1.085 |
+
+### 16. Estimation with Micro Moments
+
+Following Petrin (2002) and Berry, Levinsohn, and Pakes (2004), we re-estimates models (a)--(d) using 10,031 survey responses from 110 campus year markets. All respondents purchased a noodle dish, so we condition observed choice moments on selecting an inside good. First, we add 11 moments consisting of athlete and graduate indicators, their interaction, and each indicator interacted with the four characteristics of the purchased dish. Next, we add 18 moments based on hypothetical second choices: 16 products of first dish and second dish characteristics, one same chain indicator, and one indicator for two gluten free dishes.
+
+For second choices, the first dish is unavailable. The probability of choosing dish $k\ne j$, conditional on having chosen $j$ and student type $h$, is
+
+$$
+\Pr(k\mid j,h,mt)=
+\frac{E_\nu\left[P_{j\mid h,\nu,mt}
+\dfrac{e^{V_{k,h,\nu,mt}}}{\sum_{\ell\in\mathcal J_{mt}\setminus\{j\}}e^{V_{\ell,h,\nu,mt}}}\right]}
+{E_\nu[P_{j\mid h,\nu,mt}]}.
+$$
+
+The hypothetical choice is restricted to other noodle dishes, excluding the original dish and the outside option. We combine the survey moments with the aggregate IV moments in two step GMM. The two microdata additions are estimated sequentially to show their separate effects. The same aggregate instruments and 512 simulation draws are used.
+
+**Table III.5. Re-estimated price coefficients and taste standard deviations**
+
+| Model | Added microdata |  Price | SD spicy | SD wheat | SD veg/meat | SD calories |
+|:------|:----------------|-------:|---------:|---------:|------------:|------------:|
+| \(a\) | Type and choice | -0.850 |    0.003 |    0.265 |       0.588 |       0.002 |
+| \(a\) | Second choice   | -0.860 |    0.236 |    0.307 |       0.704 |       0.227 |
+| \(b\) | Type and choice | -0.851 |       -- |       -- |          -- |          -- |
+| \(b\) | Second choice   | -0.842 |       -- |       -- |          -- |          -- |
+| \(c\) | Type and choice | -0.878 |    0.007 |    0.067 |       0.765 |       0.481 |
+| \(c\) | Second choice   | -0.877 |    0.406 |    0.160 |       0.663 |       0.202 |
+| \(d\) | Type and choice | -0.937 |    0.606 |    0.345 |       0.586 |       0.498 |
+| \(d\) | Second choice   | -0.917 |    0.445 |    0.245 |       0.662 |       0.604 |
+
+**Table III.6. Athlete and graduate coefficients, with both sets of micro moments**
+
+| Model | Student type |  Spicy |  Wheat | Veg/meat | Calories |
+|:------|:-------------|-------:|-------:|---------:|---------:|
+| \(b\) | Athlete      | -0.352 |  0.798 |   -0.669 |    0.698 |
+| \(b\) | Graduate     |  0.216 | -0.127 |    0.702 |   -0.559 |
+| \(c\) | Athlete      | -0.295 |  0.880 |   -0.613 |    0.720 |
+| \(c\) | Graduate     |  0.232 | -0.093 |    0.744 |   -0.473 |
+| \(d\) | Athlete      | -0.295 |  0.906 |   -0.681 |    0.707 |
+| \(d\) | Graduate     |  0.225 | -0.115 |    0.752 |   -0.422 |
+
+The demographic choice moments change the athlete and graduate coefficients noticeably compared with aggregate only estimation. The second choice moments also affect taste dispersion: in model (c), the spicy standard deviation changes from about 0.007 to 0.406 when the second choices are included. For model (d), the final correlations between wheat and veg/meat, wheat and calories, and veg/meat and calories are 0.9998, 0.4077, and 0.4236, respectively. Although the additional data distinguish calorie tastes somewhat better, this covariance remains singular to numerical precision.
+
+**Table III.7. Welfare and competition by information set**
+
+| Model | Data | Welfare | Athlete only | Graduate only | Own elasticity | Cross elasticity | GF diversion |
+|:--------|:--------|--------:|--------:|--------:|--------:|--------:|--------:|
+| \(a\) | Aggregate | 0.480 | 0.480 | 0.480 | -0.906 | 0.058 | 34.1% |
+| \(a\) | Type-choice | 0.480 | 0.480 | 0.480 | -0.906 | 0.058 | 34.1% |
+| \(a\) | Type+second | 0.477 | 0.477 | 0.477 | -0.914 | 0.059 | 34.2% |
+| \(b\) | Aggregate | 0.482 | 0.607 | 0.389 | -0.902 | 0.058 | 32.9% |
+| \(b\) | Type-choice | 0.481 | 0.377 | 0.569 | -0.905 | 0.058 | 34.3% |
+| \(b\) | Type+second | 0.486 | 0.387 | 0.561 | -0.896 | 0.057 | 34.3% |
+| \(c\) | Aggregate | 0.467 | 0.480 | 0.412 | -0.931 | 0.060 | 33.8% |
+| \(c\) | Type-choice | 0.468 | 0.367 | 0.553 | -0.930 | 0.060 | 33.9% |
+| \(c\) | Type+second | 0.471 | 0.375 | 0.549 | -0.927 | 0.060 | 34.4% |
+| \(d\) | Aggregate | 0.453 | 0.434 | 0.430 | -0.965 | 0.063 | 35.0% |
+| \(d\) | Type-choice | 0.445 | 0.350 | 0.524 | -0.985 | 0.064 | 35.4% |
+| \(d\) | Type+second | 0.453 | 0.356 | 0.534 | -0.967 | 0.063 | 34.9% |
+
+Type choice adds observed choice moments by student type, and Type+second also adds hypothetical choices. Welfare is the 2011--2020 mean compensating variation per lunch choice in price units. Elasticities and gluten-free diversion refer to 2016--2020. These are fixed price counterfactuals.
+
+Average welfare and elasticity estimates change relatively little after adding microdata, but the group specific results change more, which is good as expected. For example, in model (b) the athlete only welfare estimate falls from 0.607 to 0.387, while the graduate only estimate rises from 0.389 to 0.561. Hence the matched demographic data is particularly important for measuring who benefits from new products. The second choice responses further discipline unobserved taste dispersion and correlations, while the estimated substitution between gluten free dishes remains around one third across specifications.
